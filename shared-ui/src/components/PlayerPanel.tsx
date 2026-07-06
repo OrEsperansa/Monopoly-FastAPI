@@ -4,9 +4,11 @@ import type { GameState } from "../types";
 
 type Props = {
   game: GameState;
+  selectedPlayerId: number | null;
+  onSelectPlayer: (playerId: number) => void;
 };
 
-export function PlayerPanel({ game }: Props) {
+export function PlayerPanel({ game, selectedPlayerId, onSelectPlayer }: Props) {
   const winner = game.players.find((player) => player.id === game.winner_id);
 
   return (
@@ -17,20 +19,23 @@ export function PlayerPanel({ game }: Props) {
       </div>
       <div className="player-list">
         {game.players.map((player) => (
-          <article
+          <button
             className={`player-card player-${player.id} ${game.current_player_id === player.id ? "current" : ""} ${
-              player.is_bankrupt ? "bankrupt" : ""
-            }`}
+              selectedPlayerId === player.id ? "selected" : ""
+            } ${player.is_bankrupt ? "bankrupt" : ""}`}
             key={player.id}
+            type="button"
+            onClick={() => onSelectPlayer(player.id)}
+            title={`Inspect ${player.name}`}
           >
             <span className={`token token-${player.id} ${game.current_player_id === player.id ? "token-active" : ""}`}>
               {player.name.slice(0, 1).toUpperCase()}
             </span>
-            <div className="player-info">
+            <span className="player-info">
               <strong>{player.name}</strong>
               <small>{player.is_bankrupt ? "Bankrupt" : game.current_player_id === player.id ? "Taking turn" : "Waiting"}</small>
-            </div>
-            <div className="player-stats">
+            </span>
+            <span className="player-stats">
               <span>
                 <CircleDollarSign size={14} /> ${player.money}
               </span>
@@ -38,8 +43,8 @@ export function PlayerPanel({ game }: Props) {
                 <MapPin size={14} /> {player.position}
               </span>
               <span>{player.owned_tile_ids.length} deeds</span>
-            </div>
-          </article>
+            </span>
+          </button>
         ))}
       </div>
       {winner && (
