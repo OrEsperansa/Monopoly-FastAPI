@@ -52,3 +52,17 @@ pytest
 cd shared-ui
 npm run build
 ```
+
+## Run With Docker
+
+Build and start both applications:
+
+```bash
+docker compose up --build
+```
+
+Open the UI at `http://localhost:5173` and use
+`http://localhost:8000` as the API URL. Published images are available as:
+
+- `oresperansa/monopoly-fastapi-api:latest`
+- `oresperansa/monopoly-fastapi-ui:latest`
