@@ -1,9 +1,11 @@
 # Property Empire Classroom
 
-Property Empire Classroom is a teaching project with two independent applications:
+Property Empire Classroom is a backend-recreation exercise with two independent applications:
 
-- `student-api`: a FastAPI backend and pure Python game engine.
+- `student-api`: dependency-only starting point for the student's FastAPI backend.
 - `shared-ui`: a React + Vite frontend that talks to the backend only through HTTP.
+- `student-tests`: cumulative black-box HTTP checkpoints.
+- `instructor`: clearly labeled reference solution, edge tests, and Hebrew teaching guide.
 
 The architecture is intentionally strict:
 
@@ -19,17 +21,27 @@ Pure Python Game Engine
 
 The React app never calculates game rules. FastAPI routes never contain business logic. The game engine imports no FastAPI code and can be tested as plain Python.
 
-## Run The Backend
+## Start the Exercise
 
 ```bash
 cd student-api
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`.
+Read `docs/student-backend-exercises-he/01_health_check.docx`, create your ASGI application, and start it on any free port:
+
+```bash
+set PROPERTY_EMPIRE_TESTING=1
+uvicorn <your_module>:app --reload --port 8123
+```
+
+Run the matching cumulative checkpoint from the repository root:
+
+```bash
+python student-tests/run_checkpoint.py 1 --api-url http://localhost:8123
+```
 
 ## Run The Frontend
 
@@ -39,12 +51,12 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL and enter an API URL such as `http://localhost:8000` or a classroom LAN address like `http://192.168.x.x:8000`.
+Open the Vite URL and enter the student's API URL. The UI only displays server data and sends API requests; it contains no game rules.
 
 ## Test
 
 ```bash
-cd student-api
+cd instructor/solution-api
 pytest
 ```
 
@@ -55,14 +67,17 @@ npm run build
 
 ## Run With Docker
 
-Build and start both applications:
+Run the published reference images. Override either host port if it is occupied:
 
 ```bash
-docker compose up --build
+$env:API_PORT=8123
+$env:UI_PORT=5174
+docker compose up
 ```
 
-Open the UI at `http://localhost:5173` and use
-`http://localhost:8000` as the API URL. Published images are available as:
+Open the UI at `http://localhost:5174` and use `http://localhost:8123` as the API URL.
+
+Instructors can build the local solution with `docker compose -f instructor/docker-compose.yml up --build`. Published images are:
 
 - `oresperansa/monopoly-fastapi-api:latest`
 - `oresperansa/monopoly-fastapi-ui:latest`

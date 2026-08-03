@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: ./solution-api
+    environment:
+      PROPERTY_EMPIRE_TESTING: "1"
+    ports:
+      - "${API_PORT:-8123}:8000"
+
+  ui:
+    build:
+      context: ../shared-ui
+    depends_on:
+      - api
+    ports:
+      - "${UI_PORT:-5174}:80"

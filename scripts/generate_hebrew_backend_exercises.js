@@ -16,7 +16,12 @@ const {
 } = require('docx');
 
 const root = path.resolve(__dirname, '..');
-const output = path.join(root, 'docs', 'student-backend-exercises-he');
+// Design preset: compact_reference_guide. Named overrides: Arial for Hebrew
+// legibility and the workshop_agenda title stack for classroom progress.
+const artifactRoot = process.env.PROPERTY_EMPIRE_DOCX_ROOT
+  ? path.resolve(process.env.PROPERTY_EMPIRE_DOCX_ROOT)
+  : root;
+const output = path.join(artifactRoot, 'docs', 'student-backend-exercises-he');
 
 const exercises = [
   {
@@ -313,6 +318,83 @@ const exercises = [
   },
 ];
 
+const learningMetadata = [
+  {
+    duration: '30–45 דקות',
+    prerequisites: ['היכרות בסיסית עם Python, HTTP ו-JSON.', 'יכולת להפעיל סביבת Python ולהתקין את התלויות שסופקו.'],
+    concepts: ['הפעלת שירות Web.', 'חוזה בסיסי של בקשה, קוד מצב ותשובת JSON.'],
+    errors: ['נתיב או שיטת HTTP שגויים אינם נחשבים למימוש תקין.', 'התשובה חייבת להיות JSON תקין גם כאשר הלקוח אינו דפדפן.'],
+    submission: ['קישור לקוד בנקודת הזמן של סיום התרגיל.', 'פלט של checkpoint 1 וצילום או העתק של בקשת health מוצלחת.'],
+  },
+  {
+    duration: '60–90 דקות',
+    prerequisites: ['השלמת תרגיל 1.', 'הבנת רשימות, אובייקטים ומזהים.'],
+    concepts: ['יצירת משאב ושליפת מצב.', 'שמירת מצב עקבי בין בקשות.'],
+    errors: ['יצירת משחק חדש מחליפה את המשחק הפעיל הקודם.', 'אין להחזיר מצב חלקי או לוח בגודל שונה.'],
+    submission: ['פלט של checkpoint 2.', 'דוגמת POST ולאחריה GET שמציגים אותו מצב.'],
+  },
+  {
+    duration: '45–60 דקות',
+    prerequisites: ['השלמת תרגיל 2.', 'היכרות עם ולידציה של קלט.'],
+    concepts: ['חוזה JSON מלא.', 'ולידציה ושמירת מצב לאחר בקשה שנכשלה.'],
+    errors: ['פחות מ-2 או יותר מ-4 שמות, שם ריק ושם כפול מחזירים 422.', 'בקשה לא תקינה אינה מחליפה את המשחק הפעיל.'],
+    submission: ['פלט של checkpoint 3.', 'דוגמה אחת לקלט תקין ושתי דוגמאות לקלט שנדחה.'],
+  },
+  {
+    duration: '60–90 דקות',
+    prerequisites: ['השלמת תרגיל 3.', 'הבנת חשבון מודולרי בלוח מעגלי.'],
+    concepts: ['מעבר מצב דטרמיניסטי.', 'תנועה, מעבר Start והגבלת פעולות.'],
+    errors: ['ערך X-Test-Dice-Roll מחוץ לטווח 1–6 מחזיר 422 ללא שינוי מצב.', 'roll שאינו זמין מחזיר 409.'],
+    submission: ['פלט של checkpoint 4 כאשר מצב הבדיקות פעיל.', 'דוגמת תנועה עם ערך קובייה קבוע.'],
+  },
+  {
+    duration: '75–105 דקות',
+    prerequisites: ['השלמת תרגיל 4.', 'הבנת בעלות ופעולה מותנית.'],
+    concepts: ['סוגי משבצות.', 'עדכון אטומי של כסף ובעלות.'],
+    errors: ['buy שאינו זמין מחזיר 409 ללא שינוי מצב.', 'אי אפשר לקנות משבצת שאינה נכס, נכס תפוס או נכס יקר מדי.'],
+    submission: ['פלט של checkpoint 5.', 'מצב לפני ואחרי קנייה שמראה כסף, owner_id ו-owned_tile_ids.'],
+  },
+  {
+    duration: '75–120 דקות',
+    prerequisites: ['השלמת תרגיל 5.', 'הבנת השפעות כספיות ורישום אירועים.'],
+    concepts: ['שכירות והעברת כסף.', 'Reward, Penalty, Surprise ועקביות יומן האירועים.'],
+    errors: ['השפעה אינה יכולה להשאיר מיקום מחוץ ללוח.', 'last_event חייב להיות הרשומה האחרונה ב-event_log.'],
+    submission: ['פלט של checkpoint 6.', 'דוגמאות לתגמול, קנס, שכירות והפתעה.'],
+  },
+  {
+    duration: '60–90 דקות',
+    prerequisites: ['השלמת תרגיל 6.', 'הבנת מכונת מצבים פשוטה.'],
+    concepts: ['סבב תורות ופעולות זמינות.', 'שגיאות דומיין ללא שינוי מצב.'],
+    errors: ['פעולה שאינה ב-available_actions מחזירה 409.', 'GET ללא משחק מחזיר 404; שחקן שפשט רגל אינו מקבל תור.'],
+    submission: ['פלט של checkpoint 7.', 'רצף בקשות שמראה מעבר תור ושגיאה שאינה משנה מצב.'],
+  },
+  {
+    duration: '75–120 דקות',
+    prerequisites: ['השלמת תרגילים 1–7.', 'יכולת לחבר את כל כללי המשחק לחוזה אחד יציב.'],
+    concepts: ['פשיטת רגל, ניצחון ואיפוס.', 'שרת כמקור האמת היחיד עבור הממשק.'],
+    errors: ['לאחר סיום המשחק אין פעולות זמינות.', 'reset מחזיר מצב not_started מלא ועקבי.'],
+    submission: ['פלט של checkpoint 8.', 'הדגמה מלאה דרך הממשק וצילום מסך.', 'השתקפות קצרה: החלטה אחת, תקלה אחת ומה למדתם.'],
+  },
+];
+
+const completionItems = [
+  'כל נקודות הקצה שנדרשות עד לתרגיל זה מחזירות את קודי המצב וה-JSON שהוגדרו.',
+  'כל בדיקות ה-checkpoint הנוכחי והתרגילים הקודמים עוברות.',
+  'בדקתי לפחות מקרה הצלחה אחד ומקרה שגיאה אחד בלי לשנות את חוזה ה-API.',
+  'שמרתי את ראיות ההגשה הנדרשות ואני מסוגל להסביר את החלטות המימוש שלי.',
+];
+
+const instructorHints = [
+  ['בדקו קודם שהשירות אכן מאזין לכתובת ולפורט שנבחרו.', 'השוו בנפרד קוד מצב, Content-Type וגוף JSON.', 'התגובה הנדרשת היא בדיוק אובייקט status עם הערך ok.'],
+  ['בקשו מהתלמידים לנסח מה חייב להישמר בין POST ל-GET.', 'בדקו מזהים, ערכי פתיחה וגודל לוח בנפרד.', 'יצירה תקינה מחזירה משחק active עם השחקן הראשון ופעולת roll.'],
+  ['הפרידו בין בדיקת הקלט לבין יצירת מצב חדש.', 'בדקו רווחים חיצוניים וכפילויות ללא תלות בגודל אות.', 'כל קלט פסול מחזיר 422 והמשחק הקודם נשאר ללא שינוי.'],
+  ['התחילו מתנועה אחת עם ערך קבוע ורק אחר כך בדקו לולאה סביב הלוח.', 'הזכירו שמיקום חדש מחושב על לוח בן 16 משבצות.', 'במצב בדיקות הכותרת קובעת 1–6; ערך פסול מחזיר 422 ללא שינוי.'],
+  ['בקשו לזהות אילו שלושה ערכים חייבים להשתנות יחד בקנייה.', 'השוו מחיר הנכס להפרש בכסף ובדקו את שתי תצוגות הבעלות.', 'קנייה מעדכנת money, owner_id ו-owned_tile_ids באותה בקשה.'],
+  ['בדקו כל סוג משבצת בנפרד לפני רצף משחק מלא.', 'בשכירות השוו את הירידה אצל השוכר לעלייה אצל הבעלים.', 'לאחר כל השפעה last_event חייב להיות האיבר האחרון ב-event_log.'],
+  ['השתמשו ב-available_actions כרשימת ההרשאות של המצב הנוכחי.', 'שמרו צילום מצב לפני פעולה אסורה והשוו אחריה.', 'פעולה אסורה מחזירה 409 ואינה משנה כסף, מיקום, בעלות או תור.'],
+  ['הריצו תרחיש ארוך דרך HTTP בלבד.', 'בדקו בנפרד פשיטת רגל, דילוג, מנצח ואיפוס.', 'כאשר נשאר שחקן פעיל אחד המשחק finished, אין פעולות, ו-reset מחזיר not_started.'],
+];
+
 const border = { style: BorderStyle.SINGLE, size: 1, color: 'CBD5E1' };
 
 function heRun(text, options = {}) {
@@ -349,7 +431,7 @@ function list(items, reference) {
     bidirectional: true,
     alignment: AlignmentType.RIGHT,
     numbering: { reference, level: 0 },
-    spacing: { after: 90, line: 300 },
+    spacing: { after: 80, line: 300 },
     children: [heRun(text)],
   }));
 }
@@ -386,6 +468,16 @@ function endpointBlock(endpoint, index) {
 }
 
 function createDocument(exercise, index) {
+  const meta = learningMetadata[index];
+  if (index === 3) {
+    exercise = {
+      ...exercise,
+      requirements: [
+        ...exercise.requirements,
+        'כאשר PROPERTY_EMPIRE_TESTING שווה 1, הכותרת האופציונלית X-Test-Dice-Roll עם ערך 1–6 קובעת את תוצאת הזריקה לבקשה זו. ללא הכותרת הזריקה אקראית; מחוץ למצב בדיקות הכותרת אינה משפיעה.',
+      ],
+    };
+  }
   const children = [
     rtlParagraph(`תרגיל ${index + 1} מתוך ${exercises.length}`, { run: { bold: true, color: '2563EB', size: 20 }, paragraph: { spacing: { after: 60 } } }),
     rtlParagraph(exercise.title, { run: { bold: true, color: '1E3A5F', size: 44 }, paragraph: { spacing: { after: 120 } } }),
@@ -394,12 +486,24 @@ function createDocument(exercise, index) {
       run: { bold: true, color: '1E3A5F' },
       paragraph: { shading: { fill: 'EFF6FF', type: ShadingType.CLEAR }, indent: { left: 160, right: 160 }, spacing: { before: 80, after: 180, line: 300 } },
     }),
+    heading('מטרות והיערכות', HeadingLevel.HEADING_1),
+    rtlParagraph('זמן משוער: ' + meta.duration, { run: { bold: true } }),
+    heading('ידע מוקדם', HeadingLevel.HEADING_2),
+    ...list(meta.prerequisites, 'prerequisites-' + index),
+    heading('מה נבדק בתרגיל', HeadingLevel.HEADING_2),
+    ...list(meta.concepts, 'concepts-' + index),
     heading('דרישות התרגיל', HeadingLevel.HEADING_1),
     ...list(exercise.requirements, `requirements-${index}`),
     heading('נקודות הקצה', HeadingLevel.HEADING_1),
     ...exercise.endpoints.flatMap(endpointBlock),
     heading('בדיקות קבלה', HeadingLevel.HEADING_1),
     ...list(exercise.checks, `checks-${index}`),
+    heading('מקרי שגיאה שחייבים לבדוק', HeadingLevel.HEADING_1),
+    ...list(meta.errors, 'errors-' + index),
+    heading('מה מגישים', HeadingLevel.HEADING_1),
+    ...list(meta.submission, 'submission-' + index),
+    heading('רשימת בדיקה לסיום', HeadingLevel.HEADING_1),
+    ...list(completionItems, 'completion-' + index),
     heading('תנאי סיום', HeadingLevel.HEADING_1),
     rtlParagraph('התרגיל הושלם כאשר כל הדרישות ובדיקות הקבלה מתקיימות, בלי לשנות את חוזה הבקשות והתשובות.', { run: { bold: true } }),
   ];
@@ -412,14 +516,14 @@ function createDocument(exercise, index) {
       default: { document: { run: { font: 'Arial', size: 22 } } },
       paragraphStyles: [
         { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-          run: { font: 'Arial', size: 32, bold: true, color: '2563EB' },
-          paragraph: { spacing: { before: 300, after: 160 }, outlineLevel: 0 } },
+          run: { font: 'Arial', size: 32, bold: true, color: '2E74B5' },
+          paragraph: { spacing: { before: 360, after: 200 }, outlineLevel: 0 } },
         { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-          run: { font: 'Arial', size: 27, bold: true, color: '1E3A5F' },
-          paragraph: { spacing: { before: 240, after: 120 }, outlineLevel: 1 } },
+          run: { font: 'Arial', size: 26, bold: true, color: '2E74B5' },
+          paragraph: { spacing: { before: 280, after: 140 }, outlineLevel: 1 } },
         { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
-          run: { font: 'Arial', size: 24, bold: true, color: '334155' },
-          paragraph: { spacing: { before: 160, after: 80 }, outlineLevel: 2 } },
+          run: { font: 'Arial', size: 24, bold: true, color: '1F4D78' },
+          paragraph: { spacing: { before: 200, after: 100 }, outlineLevel: 2 } },
       ],
     },
     numbering: {
@@ -427,25 +531,115 @@ function createDocument(exercise, index) {
         {
           reference: `requirements-${index}`,
           levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.RIGHT,
-            style: { paragraph: { indent: { right: 720, hanging: 360 } } } }],
+            style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
         },
         {
           reference: `checks-${index}`,
           levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.RIGHT,
-            style: { paragraph: { indent: { right: 720, hanging: 360 } } } }],
+            style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
         },
+        ...['prerequisites', 'concepts', 'errors', 'submission', 'completion'].map((name) => ({
+          reference: name + '-' + index,
+          levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.RIGHT,
+            style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
+        })),
       ],
     },
     sections: [{
       properties: {
         page: {
           size: { width: 12240, height: 15840 },
-          margin: { top: 1080, right: 1260, bottom: 1080, left: 1260, header: 600, footer: 600 },
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440, header: 708, footer: 708 },
         },
       },
       headers: {
         default: new Header({ children: [rtlParagraph('Property Empire | משימות Backend', { run: { size: 18, color: '64748B' } })] }),
       },
+      footers: {
+        default: new Footer({ children: [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [heRun('עמוד ', { size: 18, color: '64748B' }), new TextRun({ children: [PageNumber.CURRENT], font: 'Arial', size: 18 })],
+        })] }),
+      },
+      children,
+    }],
+  });
+}
+
+function createInstructorGuide() {
+  const children = [
+    rtlParagraph('מדריך למורה: Property Empire', { run: { bold: true, color: '1E3A5F', size: 44 } }),
+    rtlParagraph('ליווי, משוב והערכה לתרגילי Backend', { run: { size: 25 }, paragraph: { spacing: { after: 220 } } }),
+    rtlParagraph('חשוב: התיקייה instructor היא סימון ארגוני בלבד ואינה פרטית. בדיקות נסתרות אמיתיות יש לשמור במערכת קורס פרטית.', {
+      run: { bold: true, color: '9A3412' },
+      paragraph: { shading: { fill: 'FFF7ED', type: ShadingType.CLEAR }, indent: { left: 160, right: 160 } },
+    }),
+    heading('עקרונות הוראה', HeadingLevel.HEADING_1),
+    ...list([
+      'הציגו בכל פעם רק את חוזה ההתנהגות של התרגיל הנוכחי.',
+      'בקשו מהתלמיד להסביר תצפית HTTP לפני מתן רמז.',
+      'תנו רמזים בהדרגה: כיוון חשיבה, נקודת בדיקה, ורק לבסוף תנאי מדויק.',
+      'ה-UI מציג מצב ושולח בקשות בלבד; כל כללי המשחק שייכים לשרת.',
+      'אין משימות הרחבה במסלול זה. השלמת החוזה המלא היא יעד הסיום.',
+    ], 'instructor-bullets'),
+  ];
+
+  exercises.forEach((exercise, index) => {
+    const meta = learningMetadata[index];
+    children.push(heading(exercise.title, HeadingLevel.HEADING_1));
+    children.push(rtlParagraph('זמן משוער: ' + meta.duration, { run: { bold: true } }));
+    children.push(heading('תוצאה מצופה', HeadingLevel.HEADING_2));
+    children.push(rtlParagraph(exercise.goal));
+    children.push(heading('טעויות נפוצות ונקודות קצה', HeadingLevel.HEADING_2));
+    children.push(...list(meta.errors, 'instructor-bullets'));
+    children.push(heading('שלוש רמות רמז', HeadingLevel.HEADING_2));
+    instructorHints[index].forEach((hint, hintIndex) => {
+      children.push(rtlParagraph('רמה ' + (hintIndex + 1) + ': ' + hint, { run: { bold: hintIndex === 0 } }));
+    });
+    children.push(heading('מיפוי בדיקות ומשוב', HeadingLevel.HEADING_2));
+    children.push(rtlParagraph('הריצו checkpoint ' + (index + 1) + '. הוא כולל את תרגילים 1–' + (index + 1) + ' ובודק רק התנהגות HTTP.'));
+    children.push(rtlParagraph('ראיות ההגשה: ' + meta.submission.join(' ')));
+  });
+
+  children.push(heading('מחוון הערכה', HeadingLevel.HEADING_1));
+  children.push(...list([
+    'התנהגות פונקציונלית — 50%.',
+    'חוזה API וטיפול בשגיאות — 20%.',
+    'בהירות קוד והפרדת אחריות — 15%.',
+    'ראיות בדיקה ותהליך איתור תקלות — 10%.',
+    'הגשה והשתקפות — 5%.',
+  ], 'instructor-bullets'));
+  children.push(rtlParagraph('אין סף כיסוי קוד מספרי. הדרישה היא ראיה ממוקדת לכל כלל, מעבר מצב ומקרה שגיאה רלוונטי.', { run: { bold: true } }));
+
+  return new Document({
+    creator: 'Property Empire Classroom',
+    title: 'מדריך למורה: Property Empire',
+    styles: {
+      default: { document: { run: { font: 'Arial', size: 22 } } },
+      paragraphStyles: [
+        { id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: 'Arial', size: 32, bold: true, color: '2E74B5' },
+          paragraph: { spacing: { before: 360, after: 200 }, outlineLevel: 0 } },
+        { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: 'Arial', size: 26, bold: true, color: '2E74B5' },
+          paragraph: { spacing: { before: 280, after: 140 }, outlineLevel: 1 } },
+      ],
+    },
+    numbering: {
+      config: [{
+        reference: 'instructor-bullets',
+        levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.RIGHT,
+          style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
+      }],
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 },
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440, header: 708, footer: 708 },
+        },
+      },
+      headers: { default: new Header({ children: [rtlParagraph('Property Empire | מדריך למורה', { run: { size: 18, color: '64748B' } })] }) },
       footers: {
         default: new Footer({ children: [new Paragraph({
           alignment: AlignmentType.CENTER,
@@ -466,6 +660,10 @@ async function main() {
     fs.writeFileSync(target, buffer);
     process.stdout.write(`${target}\n`);
   }
+  const instructorTarget = path.join(artifactRoot, 'instructor', 'property-empire-instructor-guide-he.docx');
+  fs.mkdirSync(path.dirname(instructorTarget), { recursive: true });
+  fs.writeFileSync(instructorTarget, await Packer.toBuffer(createInstructorGuide()));
+  process.stdout.write(instructorTarget + '\n');
 }
 
 main().catch((error) => {

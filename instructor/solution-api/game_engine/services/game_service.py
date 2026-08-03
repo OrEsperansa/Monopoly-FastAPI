@@ -45,12 +45,12 @@ class GameService:
             raise GameNotFoundError("No active game exists.")
         return game
 
-    def roll(self) -> Game:
+    def roll(self, *, forced_roll: int | None = None) -> Game:
         game = self.get_game()
         self._require_action(game, "roll")
         player = self._current_player(game)
 
-        roll_value = self.dice_service.roll()
+        roll_value = forced_roll if forced_roll is not None else self.dice_service.roll()
         passed_start = self.movement_service.move_player(game, player, roll_value)
         if passed_start:
             game.add_event(f"{player.name} rolled {roll_value}, moved to {player.position}, and received 200 for Start.")

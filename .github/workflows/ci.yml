@@ -1,0 +1,50 @@
+name: Verify learning project
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: shared-ui/package-lock.json
+      - name: Install Python dependencies
+        run: pip install -r instructor/solution-api/requirements.txt
+      - name: Test reference solution
+        working-directory: instructor/solution-api
+        run: pytest -q
+      - name: Build UI
+        working-directory: shared-ui
+        run: npm ci && npm run build
+      - name: Generate and validate Word documents
+        run: |
+          npm install --no-save docx
+          node scripts/generate_hebrew_backend_exercises.js
+          python scripts/validate_learning_assets.py
+      - name: Run HTTP checkpoints
+        env:
+          PROPERTY_EMPIRE_TESTING: "1"
+        run: |
+          uvicorn app.main:app --app-dir instructor/solution-api --host 127.0.0.1 --port 8123 &
+          API_PID=$!
+          trap "kill $API_PID" EXIT
+          for attempt in {1..40}; do
+            curl -fs http://127.0.0.1:8123/api/health && break
+            sleep 0.25
+          done
+          curl -fs http://127.0.0.1:8123/api/health
+          python student-tests/run_checkpoint.py 8 --api-url http://127.0.0.1:8123
+          pytest -q -p no:cacheprovider instructor/edge-tests --api-url http://127.0.0.1:8123
+      - name: Validate Compose files
+        run: |
+          docker compose config
+          docker compose -f instructor/docker-compose.yml config
