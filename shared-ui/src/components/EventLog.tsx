@@ -1,5 +1,7 @@
 import { ScrollText } from "lucide-react";
 
+import { translateGameEvent } from "../translateGameEvent";
+
 type Props = {
   events: string[];
 };
@@ -11,8 +13,8 @@ export function EventLog({ events }: Props) {
     <aside className="event-log">
       <div className="event-heading">
         <div>
-          <span>Game feed</span>
-          <h2>Event Log</h2>
+          <span>עדכוני המשחק</span>
+          <h2>יומן אירועים</h2>
         </div>
         <ScrollText size={22} />
       </div>
@@ -20,7 +22,7 @@ export function EventLog({ events }: Props) {
         {orderedEvents.map((event, index) => (
           <p className={index === 0 ? "latest-event" : ""} key={`${event}-${index}`}>
             <span>{orderedEvents.length - index}</span>
-            {event}
+            {translateGameEvent(event)}
           </p>
         ))}
       </div>

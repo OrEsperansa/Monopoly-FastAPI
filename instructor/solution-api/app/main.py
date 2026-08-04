@@ -6,8 +6,8 @@ from app.exception_handlers import register_exception_handlers
 
 
 app = FastAPI(
-    title="Property Empire Classroom API",
-    description="Reference FastAPI backend for the Property Empire Classroom project.",
+    title="Sigit Empire Classroom API",
+    description="Reference FastAPI backend for the Sigit Empire Classroom project.",
     version="1.0.0",
 )
 

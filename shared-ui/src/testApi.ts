@@ -17,8 +17,8 @@ export type CheckpointResult = {
 async function runnerRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`/test-runner${path}`, options);
   if (!response.ok) {
-    const body = await response.json().catch(() => ({ detail: "The checkpoint runner is unavailable." }));
-    throw new Error(body.detail ?? "The checkpoint runner is unavailable.");
+    const body = await response.json().catch(() => ({ detail: "מערכת הבדיקות אינה זמינה כרגע." }));
+    throw new Error(body.detail ?? "מערכת הבדיקות אינה זמינה כרגע.");
   }
   return response.json() as Promise<T>;
 }

@@ -14,7 +14,7 @@ export function PlayerPanel({ game, selectedPlayerId, onSelectPlayer }: Props) {
   return (
     <section className="players-panel">
       <div className="panel-heading">
-        <span>Players</span>
+        <span>שחקנים</span>
         <strong>{game.players.length}</strong>
       </div>
       <div className="player-list">
@@ -26,14 +26,14 @@ export function PlayerPanel({ game, selectedPlayerId, onSelectPlayer }: Props) {
             key={player.id}
             type="button"
             onClick={() => onSelectPlayer(player.id)}
-            title={`Inspect ${player.name}`}
+            title={`הצגת הפרטים של ${player.name}`}
           >
             <span className={`token token-${player.id} ${game.current_player_id === player.id ? "token-active" : ""}`}>
               {player.name.slice(0, 1).toUpperCase()}
             </span>
             <span className="player-info">
               <strong>{player.name}</strong>
-              <small>{player.is_bankrupt ? "Bankrupt" : game.current_player_id === player.id ? "Taking turn" : "Waiting"}</small>
+              <small>{player.is_bankrupt ? "פשט/ה רגל" : game.current_player_id === player.id ? "בתור עכשיו" : "בהמתנה"}</small>
             </span>
             <span className="player-stats">
               <span>
@@ -42,14 +42,14 @@ export function PlayerPanel({ game, selectedPlayerId, onSelectPlayer }: Props) {
               <span>
                 <MapPin size={14} /> {player.position}
               </span>
-              <span>{player.owned_tile_ids.length} deeds</span>
+              <span>{player.owned_tile_ids.length} נכסים</span>
             </span>
           </button>
         ))}
       </div>
       {winner && (
         <div className="winner">
-          <Trophy size={18} /> Winner: {winner.name}
+          <Trophy size={18} /> המנצח/ת: {winner.name}
         </div>
       )}
     </section>

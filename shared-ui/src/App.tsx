@@ -8,7 +8,7 @@ import { GameBoard } from "./components/GameBoard";
 import { GameSetup } from "./components/GameSetup";
 import type { GameState } from "./types";
 
-const storedUrl = localStorage.getItem("property-empire-api-url") ?? "http://localhost:8000";
+const storedUrl = localStorage.getItem("sigit-empire-api-url") ?? localStorage.getItem("property-empire-api-url") ?? "http://localhost:8000";
 
 export function App() {
   const [apiUrl, setApiUrl] = useState(storedUrl);
@@ -19,7 +19,7 @@ export function App() {
   const [view, setView] = useState<"game" | "tests">("game");
 
   useEffect(() => {
-    localStorage.setItem("property-empire-api-url", apiUrl);
+    localStorage.setItem("sigit-empire-api-url", apiUrl);
   }, [apiUrl]);
 
   async function connect() {
@@ -34,7 +34,7 @@ export function App() {
         setGame(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not connect to the API.");
+      setError(err instanceof Error ? err.message : "לא ניתן להתחבר ל-API.");
     } finally {
       setBusy(false);
     }
@@ -54,7 +54,7 @@ export function App() {
     try {
       setGame(await operation());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed.");
+      setError(err instanceof Error ? err.message : "הבקשה נכשלה.");
     } finally {
       setBusy(false);
     }

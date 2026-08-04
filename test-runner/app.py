@@ -18,14 +18,14 @@ TEST_ROOT = ROOT / "student-tests"
 RUN_LOCK = asyncio.Lock()
 
 CHECKPOINTS = [
-    {"id": 1, "title": "Health check", "feature": "Serve GET /api/health with a stable JSON response."},
-    {"id": 2, "title": "Create a game", "feature": "Validate players and return a complete 16-space initial game."},
-    {"id": 3, "title": "Store and retrieve state", "feature": "Keep the active game between requests and return it with GET /api/game."},
-    {"id": 4, "title": "Roll and move", "feature": "Move one player on a circular board and award the Start bonus."},
-    {"id": 5, "title": "Resolve board spaces", "feature": "Apply reward, penalty, and surprise effects after movement."},
-    {"id": 6, "title": "Buy property", "feature": "Purchase an available property and update both ownership views."},
-    {"id": 7, "title": "Turns and rent", "feature": "Rotate turns, enforce available actions, and transfer rent."},
-    {"id": 8, "title": "Complete game", "feature": "Handle bankruptcy, winning, blocked actions, and reset."},
+    {"id": 1, "title": "בדיקת תקינות", "feature": "החזרת תשובת JSON יציבה מ-GET /api/health."},
+    {"id": 2, "title": "יצירת משחק", "feature": "בדיקת השחקנים והחזרת מצב פתיחה מלא עם 16 משבצות."},
+    {"id": 3, "title": "שמירת מצב ושליפתו", "feature": "שמירת המשחק בין בקשות והחזרתו באמצעות GET /api/game."},
+    {"id": 4, "title": "קובייה ותנועה", "feature": "הזזת שחקן במסלול מעגלי ומתן פרס על מעבר בנקודת היציאה."},
+    {"id": 5, "title": "השפעות המשבצות", "feature": "הפעלת פרס, תשלום והפתעה לאחר התנועה."},
+    {"id": 6, "title": "רכישת נכס", "feature": "רכישת נכס פנוי ועדכון שתי תצוגות הבעלות."},
+    {"id": 7, "title": "תורות ושכירות", "feature": "העברת תורות, אכיפת פעולות זמינות ותשלום שכירות."},
+    {"id": 8, "title": "משחק מלא", "feature": "טיפול בפשיטת רגל, ניצחון, פעולות חסומות ואיפוס."},
 ]
 
 
@@ -44,7 +44,7 @@ class RunResult(BaseModel):
     output: str
 
 
-app = FastAPI(title="Property Empire Checkpoint Runner", docs_url=None, redoc_url=None)
+app = FastAPI(title="Sigit Empire Checkpoint Runner", docs_url=None, redoc_url=None)
 
 
 def _target_url(value: str) -> str:

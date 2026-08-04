@@ -24,7 +24,13 @@ const iconByType = {
 };
 
 function formatType(type: TileType["type"]) {
-  return type.replace("_", " ");
+  return {
+    start: "יציאה",
+    property: "נכס",
+    reward: "פרס",
+    penalty: "תשלום",
+    surprise: "הפתעה"
+  }[type];
 }
 
 export function Tile({ tile, owner, occupied = false, selected = false, related = false, style, onSelect, children }: Props) {
@@ -39,7 +45,7 @@ export function Tile({ tile, owner, occupied = false, selected = false, related 
       style={style}
       type="button"
       onClick={onSelect}
-      title={`Inspect ${tile.name}`}
+      title={`הצגת פרטי ${tile.name}`}
     >
       <span className="tile-band" />
       <span className="tile-topline">
@@ -48,8 +54,8 @@ export function Tile({ tile, owner, occupied = false, selected = false, related 
       </span>
       <strong className="tile-name">{tile.name}</strong>
       <span className="tile-type-label">{formatType(tile.type)}</span>
-      {tile.price && <span className="tile-money">Buy ${tile.price}</span>}
-      {tile.rent && <span className="tile-meta">Rent ${tile.rent}</span>}
+      {tile.price && <span className="tile-money">מחיר ${tile.price}</span>}
+      {tile.rent && <span className="tile-meta">שכירות ${tile.rent}</span>}
       {tile.amount && <span className="tile-money">${tile.amount}</span>}
       {owner && <span className={`owner owner-${owner.id}`}>{owner.name}</span>}
       <span className="tokens">{children}</span>

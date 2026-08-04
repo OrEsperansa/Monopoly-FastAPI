@@ -1,6 +1,6 @@
 # Instructor Reference API
 
-This is the complete FastAPI reference backend for Property Empire Classroom. It is kept outside the dependency-only student starter.
+This is the complete FastAPI reference backend for Sigit Empire Classroom. It is kept outside the dependency-only student starter.
 
 ## Architecture
 

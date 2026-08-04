@@ -1,6 +1,6 @@
 # Docker Release Bundle
 
-This folder runs the latest published Property Empire classroom images without building source code locally.
+This folder runs the latest published Sigit Empire classroom images without building source code locally.
 
 The bundle includes:
 

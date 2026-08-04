@@ -1,6 +1,6 @@
-# Property Empire Classroom
+# Sigit Empire Classroom
 
-Property Empire Classroom is a backend-recreation exercise with two independent applications:
+Sigit Empire Classroom is a backend-recreation exercise with two independent applications. Players build an empire by purchasing Arab countries and well-known cities:
 
 - `student-api`: dependency-only starting point for the student's FastAPI backend.
 - `shared-ui`: a React + Vite frontend that talks to the backend only through HTTP.

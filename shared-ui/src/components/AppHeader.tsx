@@ -13,21 +13,21 @@ export function AppHeader({ apiUrl, connected, view, onViewChange }: Props) {
       <div className="header-brand">
         <span className="header-logo"><Landmark size={21} /></span>
         <div>
-          <strong>Property Empire</strong>
-          <span>Backend Lab</span>
+          <strong>Sigit Empire</strong>
+          <span>מעבדת Backend</span>
         </div>
       </div>
-      <nav className="view-switcher" aria-label="Workspace">
+      <nav className="view-switcher" aria-label="סביבת עבודה">
         <button className={view === "game" ? "active" : ""} onClick={() => onViewChange("game")}>
-          <Gamepad2 size={17} /> Game
+          <Gamepad2 size={17} /> משחק
         </button>
         <button className={view === "tests" ? "active" : ""} onClick={() => onViewChange("tests")}>
-          <FlaskConical size={17} /> Test lab
+          <FlaskConical size={17} /> מעבדת בדיקות
         </button>
       </nav>
       <div className={`connection-chip ${connected ? "online" : ""}`} title={apiUrl}>
         <Radio size={14} />
-        <span>{connected ? "API connected" : "API not checked"}</span>
+        <span>{connected ? "ה-API מחובר" : "ה-API טרם נבדק"}</span>
         <code>{apiUrl.replace(/^https?:\/\//, "")}</code>
       </div>
     </header>

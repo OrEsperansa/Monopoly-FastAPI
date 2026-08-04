@@ -20,6 +20,12 @@ def test_create_game(client):
     assert len(state["board"]) == 16
 
 
+def test_board_uses_arab_countries_and_cities(client):
+    state = create_game(client)
+    property_names = [tile["name"] for tile in state["board"] if tile["type"] == "property"]
+    assert property_names == ["ירדן", "קהיר", "איחוד האמירויות", "דובאי", "מרוקו", "ביירות", "דוחה"]
+
+
 def test_validation_rejects_bad_player_names(client):
     assert client.post("/api/game", json={"player_names": ["Ada"]}).status_code == 422
     assert client.post("/api/game", json={"player_names": ["Ada", ""]}).status_code == 422

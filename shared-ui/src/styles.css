@@ -25,12 +25,25 @@
 }
 
 body {
+  direction: rtl;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   background:
     radial-gradient(circle at 25% 15%, rgba(214, 168, 79, 0.14), transparent 34%),
     linear-gradient(135deg, #101315 0%, #17211f 52%, #101315 100%);
+}
+
+.input-shell input,
+.lab-settings input,
+.connection-chip code,
+.result-console pre {
+  direction: ltr;
+  text-align: left;
+}
+
+.rtl-chevron {
+  transform: rotate(180deg);
 }
 
 button,
@@ -532,7 +545,7 @@ p {
 .checkpoint-card:hover {
   background: #202829;
   border-color: rgba(214, 168, 79, 0.36);
-  transform: translateX(3px);
+  transform: translateX(-3px);
 }
 
 .checkpoint-card.passed {
@@ -845,7 +858,7 @@ p {
   overflow: hidden;
   padding: 7px;
   position: relative;
-  text-align: left;
+  text-align: right;
   transition: transform 170ms ease, box-shadow 170ms ease, filter 170ms ease;
   width: 100%;
 }
@@ -1018,13 +1031,13 @@ p {
   appearance: none;
   background: #202626;
   border: 1px solid rgba(245, 239, 226, 0.12);
-  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
   border-radius: 8px;
   display: grid;
   gap: 9px;
   grid-template-columns: auto 1fr;
   padding: 12px;
-  text-align: left;
+  text-align: right;
   width: 100%;
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
@@ -1118,13 +1131,13 @@ p {
   gap: 10px;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-left: 4px;
 }
 
 .events p {
   animation: eventEnter 240ms ease both;
   background: #202626;
-  border-left: 3px solid rgba(214, 168, 79, 0.5);
+  border-right: 3px solid rgba(214, 168, 79, 0.5);
   border-radius: 8px;
   color: #e6dcc8;
   display: grid;
@@ -1142,7 +1155,7 @@ p {
 
 .latest-event {
   background: #18322e !important;
-  border-left-color: var(--green) !important;
+  border-right-color: var(--green) !important;
 }
 
 @keyframes tokenPulse {
@@ -1151,7 +1164,7 @@ p {
 }
 
 @keyframes eventEnter {
-  from { opacity: 0; transform: translateX(12px); }
+  from { opacity: 0; transform: translateX(-12px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
