@@ -12,5 +12,15 @@ services:
       context: ../shared-ui
     depends_on:
       - api
+      - test-runner
     ports:
       - "${UI_PORT:-5174}:80"
+
+  test-runner:
+    build:
+      context: ..
+      dockerfile: test-runner/Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${TEST_RUNNER_PORT:-9002}:9000"

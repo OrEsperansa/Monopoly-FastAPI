@@ -1,0 +1,25 @@
+services:
+  api:
+    image: ${API_IMAGE:-oresperansa/monopoly-fastapi-api:latest}
+    pull_policy: always
+    environment:
+      PROPERTY_EMPIRE_TESTING: "1"
+    ports:
+      - "${API_PORT:-8000}:8000"
+
+  test-runner:
+    image: ${TEST_RUNNER_IMAGE:-oresperansa/monopoly-fastapi-test-runner:latest}
+    pull_policy: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${TEST_RUNNER_PORT:-9001}:9000"
+
+  ui:
+    image: ${UI_IMAGE:-oresperansa/monopoly-fastapi-ui:latest}
+    pull_policy: always
+    depends_on:
+      - api
+      - test-runner
+    ports:
+      - "${UI_PORT:-5187}:80"

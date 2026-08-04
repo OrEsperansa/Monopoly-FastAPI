@@ -29,3 +29,15 @@ def test_turn_order_wraps_around(api):
         roll(api, 2)
         state = action_state(api.post("/api/game/end-turn"))
         assert state["current_player_id"] == expected_id
+
+
+def test_landing_on_another_players_property_transfers_rent(api):
+    create_game(api)
+    roll(api, 1)
+    bought = action_state(api.post("/api/game/buy"))
+    rent = bought["board"][1]["rent"]
+    action_state(api.post("/api/game/end-turn"))
+    rented = roll(api, 1)
+    assert rented["players"][0]["money"] == 1400 + rent
+    assert rented["players"][1]["money"] == 1500 - rent
+    assert rented["last_event"] == rented["event_log"][-1]

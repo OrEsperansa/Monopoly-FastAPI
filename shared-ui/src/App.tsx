@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { action, createGame, getGame, health } from "./api";
 import { ApiConnector } from "./components/ApiConnector";
+import { AppHeader } from "./components/AppHeader";
+import { CheckpointLab } from "./components/CheckpointLab";
 import { GameBoard } from "./components/GameBoard";
 import { GameSetup } from "./components/GameSetup";
 import type { GameState } from "./types";
@@ -14,6 +16,7 @@ export function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState<"game" | "tests">("game");
 
   useEffect(() => {
     localStorage.setItem("property-empire-api-url", apiUrl);
@@ -59,12 +62,19 @@ export function App() {
 
   return (
     <main className="app-shell">
-      {!connected && (
-        <ApiConnector apiUrl={apiUrl} busy={busy} error={error} onApiUrlChange={setApiUrl} onConnect={connect} />
-      )}
-      {connected && !game && <GameSetup busy={busy} error={error} onStart={startGame} />}
-      {connected && game && (
-        <GameBoard game={game} busy={busy} error={error} onAction={sendAction} onNewGame={() => setGame(null)} />
+      <AppHeader apiUrl={apiUrl} connected={connected} view={view} onViewChange={setView} />
+      {view === "tests" ? (
+        <CheckpointLab apiUrl={apiUrl} onApiUrlChange={setApiUrl} />
+      ) : (
+        <div className="game-workspace">
+          {!connected && (
+            <ApiConnector apiUrl={apiUrl} busy={busy} error={error} onApiUrlChange={setApiUrl} onConnect={connect} />
+          )}
+          {connected && !game && <GameSetup busy={busy} error={error} onStart={startGame} />}
+          {connected && game && (
+            <GameBoard game={game} busy={busy} error={error} onAction={sendAction} onNewGame={() => setGame(null)} />
+          )}
+        </div>
       )}
     </main>
   );

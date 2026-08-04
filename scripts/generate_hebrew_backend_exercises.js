@@ -395,6 +395,337 @@ const instructorHints = [
   ['הריצו תרחיש ארוך דרך HTTP בלבד.', 'בדקו בנפרד פשיטת רגל, דילוג, מנצח ואיפוס.', 'כאשר נשאר שחקן פעיל אחד המשחק finished, אין פעולות, ו-reset מחזיר not_started.'],
 ];
 
+// Curriculum v2: every exercise introduces one named capability. Existing
+// endpoints may be extended in a later exercise, but are not presented as new.
+Object.assign(exercises[1], {
+  file: '02_create_game.docx',
+  title: 'תרגיל 2: יצירת משחק חדש',
+  goal: 'לקבל רשימת שמות, ליצור מצב משחק התחלתי מלא, לשמור אותו בזיכרון ולהחזיר אותו בתשובת היצירה.',
+  requirements: [
+    'גוף הבקשה הוא אובייקט JSON עם המפתח player_names. הערך שלו הוא רשימה מסודרת של 2 עד 4 מחרוזות; סדר השמות קובע את מזהי השחקנים ואת סדר התורות.',
+    'כל שם עובר הסרת רווחים בתחילתו ובסופו. שם ריק ושמות כפולים ללא תלות באותיות גדולות או קטנות אינם תקינים.',
+    'בקשה לא תקינה מחזירה 422 עם המפתח detail ואינה מחליפה משחק תקין שכבר נשמר.',
+    'בקשה תקינה יוצרת משחק חדש, שומרת אותו כמשחק הפעיל בשרת ומחזירה את אותו GameState בגוף התשובה.',
+    'status הוא מצב מחזור החיים ומתחיל כ-active; current_player_id הוא מזהה בעל התור ומתחיל ב-1; winner_id הוא null כל עוד אין מנצח.',
+    'available_actions היא רשימת הפעולות שהממשק רשאי לבקש עכשיו ומתחילה ב-roll בלבד.',
+    'players היא רשימת השחקנים. לכל שחקן id, name, money שמתחיל ב-1500, position שמתחיל ב-0, is_bankrupt שמתחיל ב-false ו-owned_tile_ids שמתחיל כרשימה ריקה.',
+    'board היא רשימה מסודרת של בדיוק 16 אובייקטים, אחד לכל מיקום בלוח. המזהים הם 0 עד 15; מזהה משבצת הוא גם המיקום שלה, ולכן 16 אינו גודל חזותי אלא מספר המיקומים במסלול המעגלי.',
+    'כל משבצת כוללת id, name ו-type. משבצת 0 היא Start מסוג start. משבצות property כוללות גם price, rent ו-owner_id שמתחיל כ-null; משבצות reward או penalty כוללות amount.',
+    'last_event מתאר את האירוע האחרון ו-event_log שומר את כל האירועים לפי סדר. ביצירה שניהם מתחילים באירוע יצירת המשחק.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game', what: 'יצירת המשחק הפעיל, שמירתו והחזרת המצב ההתחלתי.', status: '200 OK או 422',
+    request: ['{', '  "player_names": ["Ada", "Linus"]', '}'],
+    response: [
+      '{',
+      '  "status": "active",',
+      '  "current_player_id": 1,',
+      '  "winner_id": null,',
+      '  "available_actions": ["roll"],',
+      '  "players": [',
+      '    {"id": 1, "name": "Ada", "money": 1500, "position": 0, "is_bankrupt": false, "owned_tile_ids": []},',
+      '    {"id": 2, "name": "Linus", "money": 1500, "position": 0, "is_bankrupt": false, "owned_tile_ids": []}',
+      '  ],',
+      '  "board": [',
+      '    {"id": 0, "name": "Start", "type": "start"},',
+      '    {"id": 1, "name": "Bakery", "type": "property", "price": 100, "rent": 20, "owner_id": null}',
+      '  ],',
+      '  "last_event": "Game created. Roll to begin.",',
+      '  "event_log": ["Game created. Roll to begin."]',
+      '}',
+    ],
+    responseNote: 'בדוגמה מוצגות רק שתי משבצות כדי לשמור על קריאות. בתשובה אמיתית board חייבת להכיל 16 משבצות עם id רציף מ-0 עד 15.',
+  }],
+  checks: [
+    'קלט תקין מחזיר GameState מלא ושומר אותו כמצב הפעיל.',
+    'מזהי השחקנים מתחילים ב-1 ותואמים לסדר player_names.',
+    'board מכילה 16 משבצות עם מזהים 0–15 ללא חורים או כפילויות.',
+    'קלט לא תקין מחזיר 422; שמות תקינים נשמרים ללא רווחים חיצוניים.',
+  ],
+});
+
+Object.assign(exercises[2], {
+  file: '03_retrieve_game_state.docx',
+  title: 'תרגיל 3: שמירת מצב ושליפתו',
+  goal: 'להוכיח שמצב המשחק נשמר בין בקשות ולהחזיר את המשחק הפעיל בלי ליצור משחק חדש.',
+  requirements: [
+    'תרגיל זה אינו מוסיף יצירה נוספת. השתמשו ב-POST /api/game מתרגיל 2 רק כדי להכין מצב לבדיקה.',
+    'GET /api/game מחזיר את ה-GameState האחרון שנשמר בשרת, בדיוק באותו חוזה JSON שהוחזר בעת היצירה.',
+    'קריאת GET היא לקריאה בלבד: היא אינה משנה תור, כסף, מיקום, בעלות, פעולות זמינות או יומן אירועים.',
+    'מספר קריאות GET רצופות מחזירות אותו מצב כל עוד לא בוצעה פעולת משחק אחרת.',
+    'כאשר עדיין לא נוצר משחק, הבקשה מחזירה 404 וגוף JSON עם המפתח detail.',
+    'אם בקשת יצירה חדשה נכשלת בוולידציה, המשחק התקין הקודם נשאר שמור וזמין לשליפה.',
+  ],
+  endpoints: [{
+    method: 'GET', path: '/api/game', what: 'שליפת המשחק הפעיל שכבר נשמר בשרת.', status: '200 OK או 404', request: [],
+    response: ['אותו אובייקט GameState מלא שהוגדר בתרגיל 2, ללא עטיפה בשדה נוסף.'],
+  }],
+  checks: [
+    'לאחר יצירה, GET מחזיר מצב זהה לתשובת ה-POST.',
+    'שתי קריאות GET רצופות מחזירות אותו JSON.',
+    'יצירה שנדחתה ב-422 אינה מוחקת או מחליפה את המשחק השמור.',
+    'GET לפני יצירת משחק מחזיר 404 עם detail.',
+  ],
+});
+
+Object.assign(exercises[4], {
+  file: '05_tile_effects.docx',
+  title: 'תרגיל 5: השפעות משבצות',
+  goal: 'להרחיב את פעולת ה-roll שכבר קיימת כך שהשרת יפתור את השפעת המשבצת שעליה נחת השחקן.',
+  requirements: [
+    'אין נקודת קצה חדשה בתרגיל זה. POST /api/game/roll מתרגיל 4 ממשיכה לבצע תנועה וכעת גם מפעילה את סוג המשבצת.',
+    'נחיתה על reward מוסיפה את amount לכסף; נחיתה על penalty מורידה את amount.',
+    'נחיתה על surprise מפעילה אחת מהתוצאות המוגדרות של המשחק ומשאירה מיקום וכסף במצב חוקי.',
+    'נחיתה על נכס פנוי אינה קונה אותו: היא רק מוסיפה buy לצד end_turn ברשימת available_actions.',
+    'כל השפעה מעדכנת last_event ומוסיפה אותו בסוף event_log. לאחר פתרון משבצת שאינה נכס פנוי נשארת רק end_turn.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game/roll', what: 'הרחבת הפעולה מתרגיל 4: לאחר התנועה, פתרון השפעת המשבצת.', status: '200 OK או 409', request: [],
+    response: ['{', '  "state": {', '    "available_actions": ["end_turn"],', '    "last_event": "Ada received 100 from Reward.",', '    "event_log": ["...", "Ada received 100 from Reward."]', '  }', '}'],
+  }],
+  checks: [
+    'Reward ו-Penalty משנים כסף בדיוק לפי amount.',
+    'Surprise משאירה שחקן במיקום חוקי ומוסיפה אירוע.',
+    'נכס פנוי מציע buy אך אינו משנה בעלות או כסף אוטומטית.',
+    'last_event זהה תמיד לאיבר האחרון ב-event_log.',
+  ],
+});
+
+Object.assign(exercises[5], {
+  file: '06_buy_property.docx',
+  title: 'תרגיל 6: קניית נכס',
+  goal: 'להוסיף פעולה חדשה שקונה נכס פנוי רק כאשר השרת פרסם שהפעולה זמינה.',
+  requirements: [
+    'POST /api/game/buy מותרת רק כאשר buy מופיעה ב-available_actions של המצב הנוכחי.',
+    'קנייה מפחיתה price מכסף השחקן, מציבה את מזהה השחקן ב-owner_id ומוסיפה את מזהה המשבצת ל-owned_tile_ids.',
+    'שלושת העדכונים מתרחשים יחד באותה פעולה; אין להחזיר מצב שבו רק חלק מהם השתנה.',
+    'לאחר קנייה available_actions מכילה end_turn בלבד ונוסף אירוע המתאר את הקנייה.',
+    'ניסיון לקנות בזמן לא מתאים, נכס תפוס, משבצת שאינה property או נכס יקר מדי מחזיר 409 עם detail ואינו משנה מצב.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game/buy', what: 'קניית הנכס שעליו עומד השחקן הנוכחי.', status: '200 OK או 409 Conflict', request: [],
+    response: ['{', '  "state": {', '    "available_actions": ["end_turn"],', '    "players": [{"id": 1, "money": 1400, "owned_tile_ids": [1]}],', '    "board": [{"id": 1, "type": "property", "price": 100, "rent": 20, "owner_id": 1}]', '  }', '}'],
+  }],
+  checks: [
+    'הכסף יורד בדיוק לפי price.',
+    'owner_id ו-owned_tile_ids מציגים אותה בעלות.',
+    'לאחר הצלחה נשארת רק end_turn.',
+    'קנייה אסורה מחזירה 409 ואינה משנה את המצב השמור.',
+  ],
+});
+
+Object.assign(exercises[6], {
+  file: '07_turns_and_rent.docx',
+  title: 'תרגיל 7: תורות ושכירות',
+  goal: 'להעביר את התור בצורה עקבית ולחייב שכירות כאשר שחקן נוחת על נכס של שחקן אחר.',
+  requirements: [
+    'POST /api/game/end-turn היא הפעולה החדשה: היא מעבירה את current_player_id לשחקן הפעיל הבא באופן מעגלי ומחזירה available_actions עם roll בלבד.',
+    'לא ניתן לסיים תור לפני שהשחקן ביצע roll; פעולה שאינה זמינה מחזירה 409 ואינה משנה מצב.',
+    'כאשר שחקן נוחת באמצעות roll הקיים על נכס בבעלות שחקן אחר, rent יורד מהשוכר ומתווסף לבעלים באותה פעולה.',
+    'נחיתה על נכס עצמי אינה משנה כסף. יש לדלג בתור על שחקן שמסומן is_bankrupt.',
+    'כל מעבר תור ותשלום שכירות מעדכנים last_event ואת סוף event_log.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game/end-turn', what: 'סיום התור לאחר הפעולה ומעבר לשחקן הפעיל הבא.', status: '200 OK או 409 Conflict', request: [],
+    response: ['{', '  "state": {', '    "current_player_id": 2,', '    "available_actions": ["roll"],', '    "last_event": "It is now Linus turn."', '  }', '}'],
+  }],
+  checks: [
+    'סיום תור מעביר לשחקן הבא ומחזיר roll כפעולה היחידה.',
+    'אחרי השחקן האחרון התור חוזר לראשון.',
+    'שכירות יורדת ועולה באותו סכום אצל שני השחקנים.',
+    'פעולה אסורה מחזירה 409 ואינה משנה כסף, מיקום, בעלות או תור.',
+  ],
+});
+
+Object.assign(exercises[7], {
+  file: '08_complete_game.docx',
+  title: 'תרגיל 8: מחזור חיים ומשחק מלא',
+  goal: 'להשלים פשיטת רגל, ניצחון ואיפוס ולוודא שכל היכולות מהתרגילים הקודמים פועלות יחד דרך HTTP בלבד.',
+  requirements: [
+    'כאשר כסף של שחקן יורד מתחת ל-0 הוא מסומן is_bankrupt ואינו מקבל תורות נוספים.',
+    'כאשר נשאר שחקן פעיל אחד status הופך ל-finished, winner_id הוא מזהה המנצח ו-available_actions הופכת לרשימה ריקה.',
+    'לאחר סיום המשחק כל פעולת משחק שאינה reset מחזירה 409 ואינה משנה את מצב הסיום.',
+    'POST /api/game/reset היא נקודת הקצה החדשה בתרגיל זה. היא מחזירה state במצב not_started עם players, board ו-available_actions ריקים.',
+    'כל נקודות הקצה מהתרגילים 1–7 ממשיכות לעמוד באותו חוזה. הממשק רק מציג GameState ושולח פעולות שמופיעות ב-available_actions.',
+    'השרת נשאר מקור האמת היחיד לכסף, מיקום, בעלות, תור, אירועים, פשיטת רגל ומנצח.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game/reset', what: 'מחיקת המשחק הפעיל והחזרת מצב ריק ועקבי.', status: '200 OK', request: [],
+    response: ['{', '  "state": {', '    "status": "not_started",', '    "current_player_id": null,', '    "winner_id": null,', '    "available_actions": [],', '    "players": [],', '    "board": [],', '    "last_event": "Game reset.",', '    "event_log": ["Game reset."]', '  }', '}'],
+  }],
+  checks: [
+    'תרחיש HTTP מלא מגיע לקנייה, שכירות, פשיטת רגל ומנצח.',
+    'במצב finished יש winner_id ואין פעולות זמינות.',
+    'reset מחזיר חוזה not_started מלא וריק.',
+    'כל שמונת ה-checkpoints עוברים במצב cumulative מתוך ה-UI.',
+  ],
+});
+
+Object.assign(learningMetadata[1], {
+  concepts: ['יצירת משאב וולידציה של קלט.', 'חוזה GameState ושמירת המצב הפעיל.'],
+  errors: ['פחות מ-2 או יותר מ-4 שמות, שם ריק ושם כפול מחזירים 422.', 'board חייבת לכלול 16 אובייקטים עם מזהים 0–15.'],
+  submission: ['פלט בדיקות תרגיל 2 מתוך ה-UI.', 'דוגמת POST תקינה ודוגמת 422 אחת.'],
+});
+Object.assign(learningMetadata[2], {
+  concepts: ['שמירת מצב בין בקשות.', 'פעולת קריאה שאינה משנה מצב.'],
+  errors: ['GET ללא משחק מחזיר 404.', 'בקשת יצירה שנכשלה אינה מחליפה מצב קיים.'],
+  submission: ['פלט בדיקות תרגיל 3 מתוך ה-UI.', 'POST אחד ושתי קריאות GET שמחזירות אותו מצב.'],
+});
+Object.assign(learningMetadata[4], {
+  concepts: ['פתרון Reward, Penalty ו-Surprise.', 'עדכון עקבי של כסף ויומן אירועים.'],
+  errors: ['השפעה אינה משאירה מיקום מחוץ ללוח.', 'נכס פנוי אינו נקנה אוטומטית.'],
+  submission: ['פלט בדיקות תרגיל 5 מתוך ה-UI.', 'דוגמאות לתגמול, קנס והפתעה.'],
+});
+Object.assign(learningMetadata[5], {
+  concepts: ['פעולה מותנית.', 'עדכון אטומי של כסף ושתי תצוגות בעלות.'],
+  errors: ['buy שאינה זמינה מחזירה 409.', 'כישלון קנייה אינו משנה מצב.'],
+  submission: ['פלט בדיקות תרגיל 6 מתוך ה-UI.', 'מצב לפני ואחרי קנייה.'],
+});
+Object.assign(learningMetadata[6], {
+  concepts: ['סבב תורות.', 'העברת שכירות ואכיפת available_actions.'],
+  errors: ['end-turn לפני roll מחזיר 409.', 'שחקן שפשט רגל אינו מקבל תור.'],
+  submission: ['פלט בדיקות תרגיל 7 מתוך ה-UI.', 'רצף שמציג מעבר תור ותשלום שכירות.'],
+});
+
+Object.assign(instructorHints[1], ['עברו עם התלמידים על כל מפתח בבקשה ובתשובה.', 'הדגישו ש-16 משבצות הן רשימה במיקומים 0–15 ולא הוראת עיצוב.', 'POST תקין שומר ומחזיר אותו GameState; ולידציה נכשלת ב-422.']);
+Object.assign(instructorHints[2], ['השתמשו ב-POST רק כהכנה ושלחו לאחריו GET.', 'השוו את כל גוף ה-JSON ולא רק את מזהה המשחק.', 'GET חוזר ללא שינוי; כישלון יצירה אינו מחליף את המצב הקיים.']);
+Object.assign(instructorHints[4], ['הזכירו שה-roll כבר נבנה בתרגיל 4 וכעת מרחיבים את תוצאת הנחיתה.', 'בדקו כל סוג משבצת בנפרד.', 'last_event חייב להיות האיבר האחרון ב-event_log.']);
+Object.assign(instructorHints[5], ['בדקו אילו שלושה ערכים משתנים יחד בקנייה.', 'השוו price להפרש בכסף ואת שתי תצוגות הבעלות.', 'buy אסורה מחזירה 409 ללא שינוי מצב.']);
+Object.assign(instructorHints[6], ['בדקו מעבר תור לפני שילוב שכירות.', 'בשכירות השוו את הירידה אצל השוכר לעלייה אצל הבעלים.', 'available_actions היא רשימת ההרשאות של המצב.']);
+
+const exerciseNarratives = [
+  {
+    context: 'לפני שממשק המשחק יכול להציג שחקנים או לוח, הוא צריך לדעת שהשירות זמין ומוכן לקבל בקשות. המשימה הראשונה יוצרת בדיקת זמינות קטנה וחד-משמעית שאדם, דפדפן או מערכת בדיקות יכולים להבין באותה צורה.',
+    journey: [
+      'לקוח שולח בקשת GET לכתובת בדיקת התקינות.',
+      'השירות מאשר שהבקשה הצליחה באמצעות קוד 200.',
+      'הלקוח מקבל JSON קצר שמצהיר כי מצב השירות הוא ok.',
+    ],
+    terms: [
+      'Endpoint — כתובת ושיטת HTTP שמייצגות פעולה אחת שהשירות מציע.',
+      'HTTP status — מספר שמסביר אם הבקשה הצליחה או נכשלה; 200 פירושו הצלחה.',
+      'JSON — מבנה טקסט מוסכם להעברת נתונים בין הממשק לשרת.',
+    ],
+    boundary: 'בשלב זה אין משחק, שחקנים או לוח. נדרשת רק הוכחה שהשירות פעיל ומחזיר את החוזה המדויק.',
+  },
+  {
+    context: 'המשתמש מזין שמות ולוחץ על Start Game. מבחינתו, פעולה אחת צריכה לפתוח משחק מוכן: השחקנים קיימים, לכולם ערכי פתיחה, הלוח מסודר, התור הראשון ידוע והמצב נשמר כדי שהבקשות הבאות ימשיכו מאותה נקודה.',
+    journey: [
+      'הממשק שולח רשימת שמות מסודרת תחת player_names.',
+      'השירות בודק שהרשימה מייצגת 2–4 שחקנים בעלי שמות תקינים וייחודיים.',
+      'אם הקלט תקין, נוצר משחק active חדש והוא נשמר כמשחק הפעיל.',
+      'אותו מצב מלא מוחזר לממשק, כולל שחקנים, 16 מיקומי לוח, הפעולה הבאה ויומן האירועים.',
+      'אם הקלט אינו תקין, מוחזרת שגיאת 422 והמצב התקין האחרון אינו נפגע.',
+    ],
+    terms: [
+      'GameState — תמונת המצב המלאה שהממשק צריך כדי להציג את המשחק ברגע נתון.',
+      'player_names — רשימת מחרוזות; כל ערך הוא שם שחקן וסדר הערכים קובע את סדר המזהים.',
+      'board — מסלול מסודר של משבצות. 16 משבצות פירושן 16 אובייקטים במיקומים 0–15, לא לוח חזותי בגודל 16 על 16.',
+      'id — מזהה יציב שמאפשר לקשר בין שחקן, משבצת ובעלות.',
+      'null — ערך שמציין שאין כרגע שחקן או בעלים מתאים, למשל winner_id לפני שיש מנצח.',
+    ],
+    boundary: 'נדרש להגדיר מה השרת מקבל, שומר ומחזיר. אין דרישה למבנה תיקיות, למחלקות מסוימות או לטכניקת אחסון מסוימת. די בכך שהמצב נשמר בין בקשות כל עוד תהליך השירות פועל.',
+  },
+  {
+    context: 'לאחר פתיחת המשחק, הממשק צריך להיות מסוגל לבקש שוב את המצב הנוכחי—למשל אחרי רענון תצוגה—מבלי לפתוח משחק חדש ומבלי לשנות דבר. התרגיל מפריד במכוון בין יצירה לבין קריאה של מצב קיים.',
+    journey: [
+      'משחק תקין כבר נוצר ונשמר במסגרת תרגיל 2.',
+      'הממשק שולח GET כדי לקרוא את המשחק הפעיל.',
+      'השירות מחזיר את אותו GameState שנשמר, ללא תנועה, חיוב או אירוע חדש.',
+      'קריאות חוזרות מחזירות אותו מצב עד שפעולת משחק אחרת משנה אותו.',
+      'אם עדיין אין משחק פעיל, מוחזרת שגיאת 404 עם הסבר בשדה detail.',
+    ],
+    terms: [
+      'Stored state — המצב האחרון שהשרת זוכר בין שתי בקשות HTTP נפרדות.',
+      'Read-only request — בקשה שמחזירה מידע אך אינה משנה אותו.',
+      '404 Not Found — תשובה שמודיעה כי המשאב המבוקש, במקרה זה משחק פעיל, אינו קיים.',
+    ],
+    boundary: 'אין ליצור משחק מתוך GET ואין להוסיף מנגנון היסטוריה. נדרשת רק שליפה אמינה של המשחק הפעיל הנוכחי.',
+  },
+  {
+    context: 'כעת השחקן הנוכחי לוחץ Roll. המשתמש מצפה שהשרת יקבע תוצאת קובייה, יזיז רק את השחקן שבתור, יטפל במעבר בקצה המסלול ויחזיר מצב חדש שהממשק יכול להציג מיד.',
+    journey: [
+      'הפעולה זמינה רק כאשר roll מופיעה ב-available_actions.',
+      'מתקבלת תוצאה חוקית בין 1 ל-6 והשחקן הנוכחי מתקדם בהתאם.',
+      'המסלול מעגלי: אחרי מיקום 15 חוזרים למיקום 0. מעבר דרך Start מעניק 200.',
+      'השירות שומר את המיקום והכסף החדשים ומחזיר אותם בתוך state.',
+      'במצב בדיקות ניתן לבקש תוצאה קבועה כדי שהבדיקה תהיה ניתנת לחזרה.',
+    ],
+    terms: [
+      'Circular board — מסלול שבו המיקום שאחרי 15 הוא 0.',
+      'available_actions — רשימת הפעולות החוקיות שהשרת מאשר ברגע הנוכחי.',
+      'Deterministic test value — ערך קבוע לבדיקות שמחליף אקראיות ומאפשר לצפות תוצאה מדויקת.',
+    ],
+    boundary: 'התרגיל עוסק בקובייה, תנועה ובונוס Start בלבד. ההשפעה המלאה של המשבצת שאליה מגיעים מתווספת בתרגיל הבא.',
+  },
+  {
+    context: 'תנועה לבדה אינה מספיקה למשחק. כאשר שחקן נוחת על משבצת, המשתמש מצפה שהסוג שלה יקבע מה יקרה לכסף ולאילו פעולות אפשר להמשיך. תרגיל זה מרחיב את תוצאת ה-roll הקיימת, בלי להציג אותה כפעולה חדשה.',
+    journey: [
+      'השחקן מבצע roll ונוחת על משבצת מזוהה.',
+      'משבצת reward מוסיפה כסף, penalty מפחיתה כסף ו-surprise מפעילה תוצאה חוקית ומדווחת.',
+      'נכס פנוי אינו נקנה אוטומטית; השרת מציע buy ו-end_turn.',
+      'האירוע האחרון מתאר בשפה ברורה מה קרה ונוסף לסוף יומן האירועים.',
+      'המצב המעודכן נשמר ומוחזר לממשק באותה תשובה.',
+    ],
+    terms: [
+      'Tile effect — השינוי במצב המשחק שנגרם כתוצאה מנחיתה על סוג משבצת מסוים.',
+      'amount — סכום הכסף שמשבצת reward או penalty מוסיפה או מפחיתה.',
+      'event_log — רשימה כרונולוגית של אירועי המשחק; last_event הוא תמיד האירוע האחרון בה.',
+    ],
+    boundary: 'אין לקנות נכס במסגרת roll ואין לחשב שכירות עדיין. בשלב זה מזהים נכס פנוי ומציעים את הפעולות הבאות בלבד.',
+  },
+  {
+    context: 'לאחר נחיתה על נכס פנוי, הממשק מציג כפתור Buy רק מפני שהשרת כלל buy ברשימת הפעולות הזמינות. כאשר המשתמש בוחר לקנות, הוא מצפה שהמחיר, הבעלות ורשימת הנכסים יתעדכנו יחד ושהתוצאה תישמר.',
+    journey: [
+      'השחקן כבר עומד על property פנוי ו-buy זמינה.',
+      'בקשת הקנייה מאשרת שהנכס עדיין זמין ושיש לשחקן מספיק כסף.',
+      'המחיר יורד מכסף השחקן והבעלות מופיעה גם במשבצת וגם ברשימת נכסי השחקן.',
+      'השרת מוסיף אירוע קנייה ומאפשר לאחר מכן רק end_turn.',
+      'בקשה שאינה חוקית נדחית ב-409 וכל הערכים נשארים כפי שהיו.',
+    ],
+    terms: [
+      'price — הסכום שהקונה משלם פעם אחת כדי לקבל בעלות.',
+      'owner_id — מזהה השחקן שבבעלותו הנכס; null מציין נכס פנוי.',
+      'owned_tile_ids — רשימת מזהי הנכסים שבבעלות שחקן.',
+      '409 Conflict — הפעולה מובנת, אך אינה חוקית במצב המשחק הנוכחי.',
+    ],
+    boundary: 'אין לבחור נכס אחר ואין לקנות מראש. הפעולה מתייחסת רק לנכס שעליו עומד השחקן הנוכחי ורק כאשר buy זמינה.',
+  },
+  {
+    context: 'משחק מרובה משתתפים חייב להעביר שליטה באופן ברור. אחרי שהשחקן סיים את פעולתו, המשתמש מצפה שהתור יעבור לשחקן הפעיל הבא. אם שחקן נוחת על נכס של אחר, התשלום צריך לעבור בין שניהם באופן עקבי.',
+    journey: [
+      'השחקן מסיים את הפעולות המותרות בתורו ושולח end-turn.',
+      'השרת בוחר את השחקן הפעיל הבא, ובסוף הרשימה חוזר לראשיתה.',
+      'בתחילת התור החדש roll היא הפעולה היחידה.',
+      'אם השחקן החדש נוחת על נכס של שחקן אחר, rent יורד ממנו ומתווסף לבעלים באותו סכום.',
+      'פעולה שנשלחה בזמן לא מתאים נדחית ב-409 ואינה משנה את המשחק.',
+    ],
+    terms: [
+      'Turn — חלון הפעולות של שחקן אחד לפני שהשליטה עוברת לבא אחריו.',
+      'rent — תשלום מבקר לבעל נכס כאשר המבקר נוחת עליו.',
+      'Current player — השחקן היחיד שמורשה לבצע את פעולת המשחק הבאה.',
+    ],
+    boundary: 'אין לאפשר לממשק לבחור מי הבא בתור או לחשב שכירות. השרת מחזיר את התוצאה הסופית ומדלג על שחקנים שאינם פעילים.',
+  },
+  {
+    context: 'התרגיל האחרון מחבר את כל ההתנהגויות למשחק שאפשר להתחיל, לשחק ולסיים. המשתמש צריך לראות מתי שחקן פשט רגל, מי ניצח, ולדעת שאחרי הסיום אי אפשר להמשיך לפעול עד לאיפוס.',
+    journey: [
+      'המשחק מתקדם דרך יצירה, תנועה, השפעות, קנייה, תורות ושכירות.',
+      'שחקן שכספו ירד מתחת לאפס מסומן כפושט רגל ומפסיק לקבל תורות.',
+      'כאשר נשאר שחקן פעיל אחד, המשחק עובר ל-finished ומציג winner_id.',
+      'במצב finished אין פעולות משחק זמינות ובקשות נוספות נדחות בלי לשנות את התוצאה.',
+      'Reset מוחק את המשחק הפעיל ומחזיר מצב not_started ריק שמוכן לפתיחה חדשה.',
+    ],
+    terms: [
+      'Lifecycle — רצף המצבים not_started, active ו-finished.',
+      'Bankruptcy — מצב שבו שחקן אינו פעיל עוד ואינו משתתף בסבב התורות.',
+      'winner_id — מזהה המנצח; הוא null עד שהמשחק מסתיים.',
+      'Reset — פעולה שמחזירה את השירות למצב ללא משחק פעיל.',
+    ],
+    boundary: 'אין להוסיף חוקים מעבר לחוזה שנלמד. הצלחה פירושה שכל היכולות הקודמות פועלות יחד והשרת נשאר מקור האמת היחיד.',
+  },
+];
+
 const border = { style: BorderStyle.SINGLE, size: 1, color: 'CBD5E1' };
 
 function heRun(text, options = {}) {
@@ -417,12 +748,13 @@ function rtlParagraph(text, options = {}) {
   });
 }
 
-function heading(text, level) {
+function heading(text, level, paragraph = {}) {
   return new Paragraph({
     heading: level,
     bidirectional: true,
     alignment: AlignmentType.RIGHT,
     children: [heRun(text, { bold: true })],
+    ...paragraph,
   });
 }
 
@@ -464,11 +796,21 @@ function endpointBlock(endpoint, index) {
   }
   children.push(heading('דוגמת תשובה', HeadingLevel.HEADING_3));
   children.push(...code(endpoint.response));
+  if (endpoint.responseNote) {
+    children.push(rtlParagraph(endpoint.responseNote, { run: { bold: true, color: '1E3A5F' } }));
+  }
   return children;
 }
 
 function createDocument(exercise, index) {
   const meta = learningMetadata[index];
+  const narrative = exerciseNarratives[index];
+  const exerciseCompletionItems = index === 1
+    ? [
+      'חוזה היצירה המלא ובדיקות תרגילים 1–2 עוברים ללא שינוי של מבנה הבקשה או התשובה.',
+      'בדקתי יצירה תקינה וקלט שנדחה, שמרתי את תוצאות הבדיקה ואני מסוגל להסביר את משמעות השדות שהוחזרו.',
+    ]
+    : index === 7 ? completionItems.slice(0, 3) : completionItems;
   if (index === 3) {
     exercise = {
       ...exercise,
@@ -486,6 +828,16 @@ function createDocument(exercise, index) {
       run: { bold: true, color: '1E3A5F' },
       paragraph: { shading: { fill: 'EFF6FF', type: ShadingType.CLEAR }, indent: { left: 160, right: 160 }, spacing: { before: 80, after: 180, line: 300 } },
     }),
+    heading('המשימה בשפה פשוטה', HeadingLevel.HEADING_1),
+    rtlParagraph(narrative.context),
+    heading('מה המשתמש מצפה שיקרה', HeadingLevel.HEADING_2),
+    ...list(narrative.journey, 'journey-' + index),
+    heading('מונחים מקצועיים במסמך', HeadingLevel.HEADING_2),
+    ...list(narrative.terms, 'terms-' + index),
+    rtlParagraph('גבולות המשימה: ' + narrative.boundary, {
+      run: { bold: true, color: '365314' },
+      paragraph: { shading: { fill: 'F7FEE7', type: ShadingType.CLEAR }, indent: { left: 160, right: 160 }, spacing: { before: 80, after: 180, line: 300 } },
+    }),
     heading('מטרות והיערכות', HeadingLevel.HEADING_1),
     rtlParagraph('זמן משוער: ' + meta.duration, { run: { bold: true } }),
     heading('ידע מוקדם', HeadingLevel.HEADING_2),
@@ -502,10 +854,8 @@ function createDocument(exercise, index) {
     ...list(meta.errors, 'errors-' + index),
     heading('מה מגישים', HeadingLevel.HEADING_1),
     ...list(meta.submission, 'submission-' + index),
-    heading('רשימת בדיקה לסיום', HeadingLevel.HEADING_1),
-    ...list(completionItems, 'completion-' + index),
-    heading('תנאי סיום', HeadingLevel.HEADING_1),
-    rtlParagraph('התרגיל הושלם כאשר כל הדרישות ובדיקות הקבלה מתקיימות, בלי לשנות את חוזה הבקשות והתשובות.', { run: { bold: true } }),
+    heading('רשימת בדיקה לסיום', HeadingLevel.HEADING_1, index === 1 ? { pageBreakBefore: true } : {}),
+    ...list(exerciseCompletionItems, 'completion-' + index),
   ];
 
   return new Document({
@@ -539,6 +889,11 @@ function createDocument(exercise, index) {
             style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
         },
         ...['prerequisites', 'concepts', 'errors', 'submission', 'completion'].map((name) => ({
+          reference: name + '-' + index,
+          levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.RIGHT,
+            style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
+        })),
+        ...['journey', 'terms'].map((name) => ({
           reference: name + '-' + index,
           levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.RIGHT,
             style: { paragraph: { indent: { right: 540, hanging: 270 } } } }],
@@ -653,6 +1008,9 @@ function createInstructorGuide() {
 
 async function main() {
   fs.mkdirSync(output, { recursive: true });
+  for (const existing of fs.readdirSync(output).filter((name) => name.endsWith('.docx') && !name.startsWith('~$'))) {
+    fs.unlinkSync(path.join(output, existing));
+  }
   for (let index = 0; index < exercises.length; index += 1) {
     const exercise = exercises[index];
     const buffer = await Packer.toBuffer(createDocument(exercise, index));

@@ -1,9 +1,10 @@
 import type { GameState } from "./types";
 
 async function request<T>(apiUrl: string, path: string, options: RequestInit = {}): Promise<T> {
+  const headers = options.body ? { "Content-Type": "application/json", ...options.headers } : options.headers;
   const response = await fetch(`${apiUrl}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options
+    ...options,
+    headers
   });
 
   if (!response.ok) {

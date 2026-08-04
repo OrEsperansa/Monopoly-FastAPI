@@ -4,7 +4,8 @@ Property Empire Classroom is a backend-recreation exercise with two independent 
 
 - `student-api`: dependency-only starting point for the student's FastAPI backend.
 - `shared-ui`: a React + Vite frontend that talks to the backend only through HTTP.
-- `student-tests`: cumulative black-box HTTP checkpoints.
+- `student-tests`: focused black-box HTTP checkpoints for each exercise.
+- `test-runner`: the small service that lets the shared UI execute those checkpoints.
 - `instructor`: clearly labeled reference solution, edge tests, and Hebrew teaching guide.
 
 The architecture is intentionally strict:
@@ -37,7 +38,9 @@ set PROPERTY_EMPIRE_TESTING=1
 uvicorn <your_module>:app --reload --port 8123
 ```
 
-Run the matching cumulative checkpoint from the repository root:
+Open the UI's **Test lab**, enter the URL of your backend, and run the exercise checkpoint. You can run one feature in isolation or enable **Cumulative run** to include every prerequisite.
+
+The command-line runner remains available as a fallback:
 
 ```bash
 python student-tests/run_checkpoint.py 1 --api-url http://localhost:8123
@@ -51,7 +54,13 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL and enter the student's API URL. The UI only displays server data and sends API requests; it contains no game rules.
+Start the checkpoint runner in another terminal when using Vite directly:
+
+```bash
+uvicorn app:app --app-dir test-runner --reload --port 9001
+```
+
+Open the Vite URL and enter the student's API URL. The UI only displays server data, sends API requests, and asks the isolated runner to execute HTTP tests; it contains no game rules.
 
 ## Test
 
@@ -81,3 +90,4 @@ Instructors can build the local solution with `docker compose -f instructor/dock
 
 - `oresperansa/monopoly-fastapi-api:latest`
 - `oresperansa/monopoly-fastapi-ui:latest`
+- `oresperansa/monopoly-fastapi-test-runner:latest`

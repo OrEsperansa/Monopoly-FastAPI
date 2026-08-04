@@ -30,7 +30,10 @@ def main() -> None:
 
     combined = []
     forbidden = ["game_engine/", "app/main.py", "class Game", "def create_game"]
-    required_sections = ["זמן משוער", "ידע מוקדם", "מה נבדק בתרגיל", "מקרי שגיאה", "מה מגישים", "רשימת בדיקה"]
+    required_sections = [
+        "המשימה בשפה פשוטה", "מה המשתמש מצפה שיקרה", "מונחים מקצועיים במסמך", "גבולות המשימה",
+        "זמן משוער", "ידע מוקדם", "מה נבדק בתרגיל", "מקרי שגיאה", "מה מגישים", "רשימת בדיקה",
+    ]
     for path in student_docs:
         xml, text = read_docx(path)
         assert "<w:bidi" in xml and "<w:rtl" in xml, f"{path}: missing RTL metadata"

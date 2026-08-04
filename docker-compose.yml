@@ -1,12 +1,27 @@
 services:
   api:
     image: oresperansa/monopoly-fastapi-api:latest
+    environment:
+      PROPERTY_EMPIRE_TESTING: "1"
     ports:
       - "${API_PORT:-8000}:8000"
 
   ui:
     image: oresperansa/monopoly-fastapi-ui:latest
+    build:
+      context: ./shared-ui
     depends_on:
       - api
+      - test-runner
     ports:
-      - "${UI_PORT:-5173}:80"
+      - "${UI_PORT:-5187}:80"
+
+  test-runner:
+    image: oresperansa/monopoly-fastapi-test-runner:latest
+    build:
+      context: .
+      dockerfile: test-runner/Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${TEST_RUNNER_PORT:-9001}:9000"

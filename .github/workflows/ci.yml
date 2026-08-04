@@ -22,6 +22,9 @@ jobs:
       - name: Test reference solution
         working-directory: instructor/solution-api
         run: pytest -q
+      - name: Test checkpoint runner
+        working-directory: test-runner
+        run: pytest -q
       - name: Build UI
         working-directory: shared-ui
         run: npm ci && npm run build
