@@ -1,6 +1,6 @@
 # Docker Release Bundle
 
-This folder runs the latest published Sigit Empire classroom images without building source code locally.
+This folder runs the published Sigit Empire `v1.1` classroom images without building source code locally.
 
 The bundle includes:
 
@@ -28,4 +28,4 @@ Change the ports in `.env` when a default port is occupied. The image variables 
 docker compose down
 ```
 
-Docker image archives are intentionally not committed to Git: they are large binary files and do not receive useful Git deltas. This release bundle pulls the exact published images from Docker Hub instead.
+Complete offline image archives are committed in `../docker-images/`. The Compose bundle pulls the same `v1.1` images from Docker Hub by default.

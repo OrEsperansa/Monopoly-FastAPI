@@ -20,8 +20,8 @@ def create_game(api: httpx.Client) -> dict:
     return response.json()
 
 
-def roll(api: httpx.Client, value: int) -> dict:
-    response = api.post("/api/game/roll", headers={"X-Test-Dice-Roll": str(value)})
+def roll(api: httpx.Client) -> dict:
+    response = api.post("/api/game/roll")
     assert response.status_code == 200, response.text
     return response.json()["state"]
 

@@ -13,4 +13,4 @@ This directory intentionally contains dependencies only. Build the backend descr
 
 Continue through the documents in order. The tests observe only HTTP requests and responses; they do not require a particular file layout, class design, or implementation technique.
 
-For deterministic dice tests, start the API with \`PROPERTY_EMPIRE_TESTING=1\`. In that mode, \`POST /api/game/roll\` must accept the optional \`X-Test-Dice-Roll\` header described in exercise 4. Never enable this mode in production.
+The checkpoint tests use the public HTTP contract only. \`POST /api/game/roll\` takes no request body or testing-only headers.

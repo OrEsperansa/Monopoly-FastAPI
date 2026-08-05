@@ -46,7 +46,7 @@ uvicorn app.main:app --reload
 pytest
 ```
 
-Unit tests monkeypatch `DiceService`. HTTP checkpoints start the API with `PROPERTY_EMPIRE_TESTING=1` and can send `X-Test-Dice-Roll: 1..6`; invalid values return 422 without changing state. The header is ignored when test mode is disabled.
+Unit tests monkeypatch `DiceService` for deterministic domain checks. HTTP checkpoints use only the same public endpoints available to the UI and validate real dice results without testing-only headers.
 
 ## API Contract
 

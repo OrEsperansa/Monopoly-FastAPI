@@ -2,8 +2,6 @@ services:
   api:
     build:
       context: ./solution-api
-    environment:
-      PROPERTY_EMPIRE_TESTING: "1"
     ports:
       - "${API_PORT:-8123}:8000"
 

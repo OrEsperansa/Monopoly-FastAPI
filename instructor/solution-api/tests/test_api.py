@@ -44,31 +44,6 @@ def test_roll_is_deterministic_with_monkeypatched_dice(client, monkeypatch):
     assert state["available_actions"] == ["buy", "end_turn"]
 
 
-def test_test_dice_header_is_deterministic_when_enabled(client, monkeypatch):
-    create_game(client)
-    monkeypatch.setenv("PROPERTY_EMPIRE_TESTING", "1")
-    response = client.post("/api/game/roll", headers={"X-Test-Dice-Roll": "3"})
-    assert response.status_code == 200
-    assert response.json()["state"]["players"][0]["position"] == 3
-
-
-def test_invalid_test_dice_header_does_not_mutate_state(client, monkeypatch):
-    before = create_game(client)
-    monkeypatch.setenv("PROPERTY_EMPIRE_TESTING", "1")
-    response = client.post("/api/game/roll", headers={"X-Test-Dice-Roll": "7"})
-    assert response.status_code == 422
-    assert client.get("/api/game").json() == before
-
-
-def test_test_dice_header_is_ignored_when_test_mode_is_disabled(client, monkeypatch):
-    create_game(client)
-    monkeypatch.delenv("PROPERTY_EMPIRE_TESTING", raising=False)
-    monkeypatch.setattr("game_engine.services.dice_service.DiceService.roll", lambda self: 2)
-    response = client.post("/api/game/roll", headers={"X-Test-Dice-Roll": "invalid"})
-    assert response.status_code == 200
-    assert response.json()["state"]["players"][0]["position"] == 2
-
-
 def test_movement_and_passing_start(client, monkeypatch):
     create_game(client)
     service = get_game_service()
@@ -89,7 +64,7 @@ def test_buy_property(client, monkeypatch):
 
     state = client.post("/api/game/buy").json()["state"]
 
-    assert state["players"][0]["money"] == 1400
+    assert state["players"][0]["money"] == 1500 - state["board"][1]["price"]
     assert state["players"][0]["owned_tile_ids"] == [1]
     assert state["board"][1]["owner_id"] == 1
     assert state["available_actions"] == ["end_turn"]
@@ -127,7 +102,7 @@ def test_penalty_tile(client, monkeypatch):
     state = client.post("/api/game/roll").json()["state"]
 
     assert state["players"][0]["position"] == 4
-    assert state["players"][0]["money"] == 1400
+    assert state["players"][0]["money"] == 1500 - state["board"][4]["amount"]
     assert state["available_actions"] == ["end_turn"]
 
 

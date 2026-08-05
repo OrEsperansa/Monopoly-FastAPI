@@ -55,7 +55,15 @@ def main() -> None:
         "/api/game/end-turn", "/api/game/reset",
     ]
     assert all(endpoint in all_text for endpoint in endpoints), "Student documents do not cover every endpoint"
-    assert "X-Test-Dice-Roll" in all_text, "Deterministic test header is not documented"
+    forbidden_header = "".join(["X-Test-", "Dice-Roll"])
+    assert forbidden_header not in all_text, "Testing-only dice header must not be documented"
+
+    game_state_fields = [
+        "status", "current_player_id", "winner_id", "available_actions",
+        "players", "board", "last_event", "event_log",
+    ]
+    for path, text in zip(student_docs[1:], combined[1:]):
+        assert all(field in text for field in game_state_fields), f"{path}: response example is not a complete GameState"
 
     xml, instructor_text = read_docx(INSTRUCTOR_DOC)
     assert "<w:bidi" in xml and "<w:rtl" in xml

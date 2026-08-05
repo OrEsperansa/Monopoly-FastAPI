@@ -23,6 +23,58 @@ const artifactRoot = process.env.PROPERTY_EMPIRE_DOCX_ROOT
   : root;
 const output = path.join(artifactRoot, 'docs', 'student-backend-exercises-he');
 
+const boardTemplate = [
+  { id: 0, name: 'נקודת יציאה', type: 'start' },
+  { id: 1, name: 'ירדן', type: 'property', price: 100, rent: 20, owner_id: null },
+  { id: 2, name: 'פסטיבל תרבות', type: 'reward', amount: 100 },
+  { id: 3, name: 'קהיר', type: 'property', price: 120, rent: 24, owner_id: null },
+  { id: 4, name: 'מכס', type: 'penalty', amount: 350 },
+  { id: 5, name: 'איחוד האמירויות', type: 'property', price: 140, rent: 28, owner_id: null },
+  { id: 6, name: 'הפתעה במדבר', type: 'surprise' },
+  { id: 7, name: 'דובאי', type: 'property', price: 160, rent: 32, owner_id: null },
+  { id: 8, name: 'עסקת נפט', type: 'reward', amount: 150 },
+  { id: 9, name: 'מרוקו', type: 'property', price: 180, rent: 36, owner_id: null },
+  { id: 10, name: 'מס נמל', type: 'penalty', amount: 450 },
+  { id: 11, name: 'ביירות', type: 'property', price: 200, rent: 40, owner_id: null },
+  { id: 12, name: 'תיירות משגשגת', type: 'reward', amount: 200 },
+  { id: 13, name: 'דוחה', type: 'property', price: 220, rent: 44, owner_id: null },
+  { id: 14, name: 'הפתעה בשוק', type: 'surprise' },
+  { id: 15, name: 'מס יוקרה', type: 'penalty', amount: 650 },
+];
+
+function fullGameState({
+  currentPlayerId = 1,
+  availableActions = ['roll'],
+  player1Money = 1500,
+  player1Position = 0,
+  player1Owned = [],
+  player2Money = 1500,
+  player2Position = 0,
+  ownerByTile = {},
+  lastEvent = 'Game created. Roll to begin.',
+  eventLog = ['Game created. Roll to begin.'],
+} = {}) {
+  return {
+    status: 'active',
+    current_player_id: currentPlayerId,
+    winner_id: null,
+    available_actions: availableActions,
+    players: [
+      { id: 1, name: 'Ada', money: player1Money, position: player1Position, is_bankrupt: false, owned_tile_ids: player1Owned },
+      { id: 2, name: 'Linus', money: player2Money, position: player2Position, is_bankrupt: false, owned_tile_ids: [] },
+    ],
+    board: boardTemplate.map((tile) => tile.type === 'property'
+      ? { ...tile, owner_id: ownerByTile[tile.id] ?? null }
+      : { ...tile }),
+    last_event: lastEvent,
+    event_log: eventLog,
+  };
+}
+
+function jsonLines(value) {
+  return JSON.stringify(value, null, 2).split('\n');
+}
+
 const exercises = [
   {
     file: '01_health_check.docx',
@@ -148,16 +200,12 @@ const exercises = [
       {
         method: 'POST', path: '/api/game/roll',
         what: 'זריקת קובייה ותזוזת השחקן הנוכחי.', status: '200 OK', request: [],
-        response: [
-          '{',
-          '  \u0022state\u0022: {',
-          '    \u0022current_player_id\u0022: 1,',
-          '    \u0022available_actions\u0022: [\u0022buy\u0022, \u0022end_turn\u0022],',
-          '    \u0022players\u0022: [{\u0022id\u0022: 1, \u0022position\u0022: 3, \u0022money\u0022: 1500}],',
-          '    \u0022last_event\u0022: \u0022Ada rolled 3 and moved to 3.\u0022',
-          '  }',
-          '}',
-        ],
+        response: jsonLines({ state: fullGameState({
+          availableActions: ['buy', 'end_turn'],
+          player1Position: 3,
+          lastEvent: 'Ada landed on unowned קהיר.',
+          eventLog: ['Game created. Roll to begin.', 'Ada rolled 3 and moved to 3.', 'Ada landed on unowned קהיר.'],
+        }) }),
       },
     ],
     checks: [
@@ -344,8 +392,8 @@ const learningMetadata = [
     duration: '60–90 דקות',
     prerequisites: ['השלמת תרגיל 3.', 'הבנת חשבון מודולרי בלוח מעגלי.'],
     concepts: ['מעבר מצב דטרמיניסטי.', 'תנועה, מעבר Start והגבלת פעולות.'],
-    errors: ['ערך X-Test-Dice-Roll מחוץ לטווח 1–6 מחזיר 422 ללא שינוי מצב.', 'roll שאינו זמין מחזיר 409.'],
-    submission: ['פלט של checkpoint 4 כאשר מצב הבדיקות פעיל.', 'דוגמת תנועה עם ערך קובייה קבוע.'],
+    errors: ['תוצאת קובייה חייבת להיות מספר שלם בטווח 1–6.', 'roll שאינו זמין מחזיר 409 ללא שינוי מצב.'],
+    submission: ['פלט של checkpoint 4 מתוך ה-UI.', 'דוגמת תנועה אמיתית שמציגה את ערך הקובייה ואת המיקום החדש.'],
   },
   {
     duration: '75–105 דקות',
@@ -388,7 +436,7 @@ const instructorHints = [
   ['בדקו קודם שהשירות אכן מאזין לכתובת ולפורט שנבחרו.', 'השוו בנפרד קוד מצב, Content-Type וגוף JSON.', 'התגובה הנדרשת היא בדיוק אובייקט status עם הערך ok.'],
   ['בקשו מהתלמידים לנסח מה חייב להישמר בין POST ל-GET.', 'בדקו מזהים, ערכי פתיחה וגודל לוח בנפרד.', 'יצירה תקינה מחזירה משחק active עם השחקן הראשון ופעולת roll.'],
   ['הפרידו בין בדיקת הקלט לבין יצירת מצב חדש.', 'בדקו רווחים חיצוניים וכפילויות ללא תלות בגודל אות.', 'כל קלט פסול מחזיר 422 והמשחק הקודם נשאר ללא שינוי.'],
-  ['התחילו מתנועה אחת עם ערך קבוע ורק אחר כך בדקו לולאה סביב הלוח.', 'הזכירו שמיקום חדש מחושב על לוח בן 16 משבצות.', 'במצב בדיקות הכותרת קובעת 1–6; ערך פסול מחזיר 422 ללא שינוי.'],
+  ['בדקו שתוצאת קובייה אמיתית נמצאת בטווח 1–6.', 'הזכירו שמיקום חדש מחושב על לוח בן 16 משבצות.', 'בדקו לאורך מספר תורות שמעבר בנקודת היציאה מדווח ומעניק את הבונוס.'],
   ['בקשו לזהות אילו שלושה ערכים חייבים להשתנות יחד בקנייה.', 'השוו מחיר הנכס להפרש בכסף ובדקו את שתי תצוגות הבעלות.', 'קנייה מעדכנת money, owner_id ו-owned_tile_ids באותה בקשה.'],
   ['בדקו כל סוג משבצת בנפרד לפני רצף משחק מלא.', 'בשכירות השוו את הירידה אצל השוכר לעלייה אצל הבעלים.', 'לאחר כל השפעה last_event חייב להיות האיבר האחרון ב-event_log.'],
   ['השתמשו ב-available_actions כרשימת ההרשאות של המצב הנוכחי.', 'שמרו צילום מצב לפני פעולה אסורה והשוו אחריה.', 'פעולה אסורה מחזירה 409 ואינה משנה כסף, מיקום, בעלות או תור.'],
@@ -416,25 +464,7 @@ Object.assign(exercises[1], {
   endpoints: [{
     method: 'POST', path: '/api/game', what: 'יצירת המשחק הפעיל, שמירתו והחזרת המצב ההתחלתי.', status: '200 OK או 422',
     request: ['{', '  "player_names": ["Ada", "Linus"]', '}'],
-    response: [
-      '{',
-      '  "status": "active",',
-      '  "current_player_id": 1,',
-      '  "winner_id": null,',
-      '  "available_actions": ["roll"],',
-      '  "players": [',
-      '    {"id": 1, "name": "Ada", "money": 1500, "position": 0, "is_bankrupt": false, "owned_tile_ids": []},',
-      '    {"id": 2, "name": "Linus", "money": 1500, "position": 0, "is_bankrupt": false, "owned_tile_ids": []}',
-      '  ],',
-      '  "board": [',
-      '    {"id": 0, "name": "Start", "type": "start"},',
-      '    {"id": 1, "name": "Bakery", "type": "property", "price": 100, "rent": 20, "owner_id": null}',
-      '  ],',
-      '  "last_event": "Game created. Roll to begin.",',
-      '  "event_log": ["Game created. Roll to begin."]',
-      '}',
-    ],
-    responseNote: 'בדוגמה מוצגות רק שתי משבצות כדי לשמור על קריאות. בתשובה אמיתית board חייבת להכיל 16 משבצות עם id רציף מ-0 עד 15.',
+    response: jsonLines(fullGameState()),
   }],
   checks: [
     'קלט תקין מחזיר GameState מלא ושומר אותו כמצב הפעיל.',
@@ -458,7 +488,7 @@ Object.assign(exercises[2], {
   ],
   endpoints: [{
     method: 'GET', path: '/api/game', what: 'שליפת המשחק הפעיל שכבר נשמר בשרת.', status: '200 OK או 404', request: [],
-    response: ['אותו אובייקט GameState מלא שהוגדר בתרגיל 2, ללא עטיפה בשדה נוסף.'],
+    response: jsonLines(fullGameState()),
   }],
   checks: [
     'לאחר יצירה, GET מחזיר מצב זהה לתשובת ה-POST.',
@@ -481,7 +511,13 @@ Object.assign(exercises[4], {
   ],
   endpoints: [{
     method: 'POST', path: '/api/game/roll', what: 'הרחבת הפעולה מתרגיל 4: לאחר התנועה, פתרון השפעת המשבצת.', status: '200 OK או 409', request: [],
-    response: ['{', '  "state": {', '    "available_actions": ["end_turn"],', '    "last_event": "Ada received 100 from Reward.",', '    "event_log": ["...", "Ada received 100 from Reward."]', '  }', '}'],
+    response: jsonLines({ state: fullGameState({
+      availableActions: ['end_turn'],
+      player1Money: 1600,
+      player1Position: 2,
+      lastEvent: 'Ada received 100 from פסטיבל תרבות.',
+      eventLog: ['Game created. Roll to begin.', 'Ada rolled 2 and moved to 2.', 'Ada received 100 from פסטיבל תרבות.'],
+    }) }),
   }],
   checks: [
     'Reward ו-Penalty משנים כסף בדיוק לפי amount.',
@@ -504,7 +540,15 @@ Object.assign(exercises[5], {
   ],
   endpoints: [{
     method: 'POST', path: '/api/game/buy', what: 'קניית הנכס שעליו עומד השחקן הנוכחי.', status: '200 OK או 409 Conflict', request: [],
-    response: ['{', '  "state": {', '    "available_actions": ["end_turn"],', '    "players": [{"id": 1, "money": 1400, "owned_tile_ids": [1]}],', '    "board": [{"id": 1, "type": "property", "price": 100, "rent": 20, "owner_id": 1}]', '  }', '}'],
+    response: jsonLines({ state: fullGameState({
+      availableActions: ['end_turn'],
+      player1Money: 1400,
+      player1Position: 1,
+      player1Owned: [1],
+      ownerByTile: { 1: 1 },
+      lastEvent: 'Ada bought ירדן for 100.',
+      eventLog: ['Game created. Roll to begin.', 'Ada rolled 1 and moved to 1.', 'Ada landed on unowned ירדן.', 'Ada bought ירדן for 100.'],
+    }) }),
   }],
   checks: [
     'הכסף יורד בדיוק לפי price.',
@@ -527,7 +571,13 @@ Object.assign(exercises[6], {
   ],
   endpoints: [{
     method: 'POST', path: '/api/game/end-turn', what: 'סיום התור לאחר הפעולה ומעבר לשחקן הפעיל הבא.', status: '200 OK או 409 Conflict', request: [],
-    response: ['{', '  "state": {', '    "current_player_id": 2,', '    "available_actions": ["roll"],', '    "last_event": "It is now Linus turn."', '  }', '}'],
+    response: jsonLines({ state: fullGameState({
+      currentPlayerId: 2,
+      player1Money: 1600,
+      player1Position: 2,
+      lastEvent: "It is now Linus's turn.",
+      eventLog: ['Game created. Roll to begin.', 'Ada rolled 2 and moved to 2.', 'Ada received 100 from פסטיבל תרבות.', "It is now Linus's turn."],
+    }) }),
   }],
   checks: [
     'סיום תור מעביר לשחקן הבא ומחזיר roll כפעולה היחידה.',
@@ -551,7 +601,16 @@ Object.assign(exercises[7], {
   ],
   endpoints: [{
     method: 'POST', path: '/api/game/reset', what: 'מחיקת המשחק הפעיל והחזרת מצב ריק ועקבי.', status: '200 OK', request: [],
-    response: ['{', '  "state": {', '    "status": "not_started",', '    "current_player_id": null,', '    "winner_id": null,', '    "available_actions": [],', '    "players": [],', '    "board": [],', '    "last_event": "Game reset.",', '    "event_log": ["Game reset."]', '  }', '}'],
+    response: jsonLines({ state: {
+      status: 'not_started',
+      current_player_id: null,
+      winner_id: null,
+      available_actions: [],
+      players: [],
+      board: [],
+      last_event: 'Game reset.',
+      event_log: ['Game reset.'],
+    } }),
   }],
   checks: [
     'תרחיש HTTP מלא מגיע לקנייה, שכירות, פשיטת רגל ומנצח.',
@@ -649,12 +708,12 @@ const exerciseNarratives = [
       'מתקבלת תוצאה חוקית בין 1 ל-6 והשחקן הנוכחי מתקדם בהתאם.',
       'המסלול מעגלי: אחרי מיקום 15 חוזרים למיקום 0. מעבר דרך Start מעניק 200.',
       'השירות שומר את המיקום והכסף החדשים ומחזיר אותם בתוך state.',
-      'במצב בדיקות ניתן לבקש תוצאה קבועה כדי שהבדיקה תהיה ניתנת לחזרה.',
+      'בדיקות ה-HTTP קוראות את תוצאת הקובייה שהשרת דיווח ובודקות שהיא בטווח 1–6 ושהתנועה תואמת לה.',
     ],
     terms: [
       'Circular board — מסלול שבו המיקום שאחרי 15 הוא 0.',
       'available_actions — רשימת הפעולות החוקיות שהשרת מאשר ברגע הנוכחי.',
-      'Deterministic test value — ערך קבוע לבדיקות שמחליף אקראיות ומאפשר לצפות תוצאה מדויקת.',
+      'Dice result — המספר האקראי 1–6 שהשרת הגריל ודיווח ביומן האירועים.',
     ],
     boundary: 'התרגיל עוסק בקובייה, תנועה ובונוס Start בלבד. ההשפעה המלאה של המשבצת שאליה מגיעים מתווספת בתרגיל הבא.',
   },
@@ -811,15 +870,6 @@ function createDocument(exercise, index) {
       'בדקתי יצירה תקינה וקלט שנדחה, שמרתי את תוצאות הבדיקה ואני מסוגל להסביר את משמעות השדות שהוחזרו.',
     ]
     : index === 7 ? completionItems.slice(0, 3) : completionItems;
-  if (index === 3) {
-    exercise = {
-      ...exercise,
-      requirements: [
-        ...exercise.requirements,
-        'כאשר PROPERTY_EMPIRE_TESTING שווה 1, הכותרת האופציונלית X-Test-Dice-Roll עם ערך 1–6 קובעת את תוצאת הזריקה לבקשה זו. ללא הכותרת הזריקה אקראית; מחוץ למצב בדיקות הכותרת אינה משפיעה.',
-      ],
-    };
-  }
   const children = [
     rtlParagraph(`תרגיל ${index + 1} מתוך ${exercises.length}`, { run: { bold: true, color: '2563EB', size: 20 }, paragraph: { spacing: { after: 60 } } }),
     rtlParagraph(exercise.title, { run: { bold: true, color: '1E3A5F', size: 44 }, paragraph: { spacing: { after: 120 } } }),

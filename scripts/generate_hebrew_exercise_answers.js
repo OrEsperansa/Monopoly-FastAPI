@@ -114,18 +114,18 @@ class CreateGameRequest(BaseModel):
         PropertyTile(1, "ירדן", 100, 20),
         RewardTile(2, "פסטיבל תרבות", 100),
         PropertyTile(3, "קהיר", 120, 24),
-        PenaltyTile(4, "מכס", 100),
+        PenaltyTile(4, "מכס", 350),
         PropertyTile(5, "איחוד האמירויות", 140, 28),
         SurpriseTile(6, "הפתעה במדבר"),
         PropertyTile(7, "דובאי", 160, 32),
         RewardTile(8, "עסקת נפט", 150),
         PropertyTile(9, "מרוקו", 180, 36),
-        PenaltyTile(10, "מס נמל", 75),
+        PenaltyTile(10, "מס נמל", 450),
         PropertyTile(11, "ביירות", 200, 40),
         RewardTile(12, "תיירות משגשגת", 200),
         PropertyTile(13, "דוחה", 220, 44),
         SurpriseTile(14, "הפתעה בשוק"),
-        PenaltyTile(15, "מס יוקרה", 150),
+        PenaltyTile(15, "מס יוקרה", 650),
     ]`,
       },
       {
@@ -233,11 +233,11 @@ async def game_not_found(request, exc):
       "אפשר לזרוק רק כאשר roll מופיעה ב־available_actions.",
       "המיקום החדש הוא תמיד 0–15 ורק השחקן הנוכחי זז.",
       "מעבר או נחיתה בנקודת היציאה מוסיפים 200.",
-      "במצב בדיקות בלבד הכותרת X-Test-Dice-Roll יכולה לקבוע תוצאה 1–6; ערך פסול מחזיר 422 ללא שינוי.",
+      "השרת מגריל בעצמו מספר שלם 1–6; פעולת roll אינה מקבלת גוף בקשה או כותרת בדיקה מיוחדת.",
     ],
     explanation: [
       "תנועה מעגלית מחושבת באמצעות שארית בחלוקה לגודל הלוח. לפני העדכון שומרים את המיקום הישן, וכך אפשר לזהות שהסכום חצה את סוף המסלול.",
-      "שירות קובייה נפרד מאפשר משחק אקראי בייצור ובדיקה דטרמיניסטית. הנתיב קורא כותרת בדיקה רק כאשר משתנה הסביבה מפעיל במפורש מצב בדיקות.",
+      "שירות קובייה נפרד שומר את האחריות על האקראיות במקום אחד. בדיקות יחידה יכולות להחליף את השירות, ואילו בדיקות HTTP מאמתות את התוצאה האמיתית שהשרת מדווח.",
     ],
     code: [
       {
@@ -261,11 +261,11 @@ class MovementService:
       },
       {
         label: "פעולת roll בשירות המשחק",
-        text: `def roll(self, forced_roll: int | None = None) -> Game:
+        text: `def roll(self) -> Game:
     game = self.get_game()
     self._require_action(game, "roll")
     player = game.current_player
-    value = forced_roll if forced_roll is not None else self.dice_service.roll()
+    value = self.dice_service.roll()
     passed = self.movement_service.move_player(game, player, value)
     if passed:
         game.add_event(
@@ -278,25 +278,20 @@ class MovementService:
     return self.repository.save(game)`,
       },
       {
-        label: "נתיב HTTP ותוצאת בדיקה כפויה",
+        label: "נתיב HTTP",
         text: `@router.post("/game/roll", response_model=ActionResponse)
-def roll(service=Depends(get_game_service), x_test_dice_roll: str | None = Header(None)):
-    forced = None
-    if os.getenv("PROPERTY_EMPIRE_TESTING") == "1" and x_test_dice_roll:
-        if not x_test_dice_roll.isdigit() or int(x_test_dice_roll) not in range(1, 7):
-            raise HTTPException(422, "Test dice roll must be 1 to 6.")
-        forced = int(x_test_dice_roll)
-    return ActionResponse(state=service.roll(forced_roll=forced).to_dict())`,
+def roll(service=Depends(get_game_service)):
+    return ActionResponse(state=service.roll().to_dict())`,
       },
     ],
     why: [
       "אופרטור % מונע מיקום מחוץ ללוח.",
-      "הכותרת נבדקת לפני שינוי המשחק, ולכן ערך פסול אינו מזיז שחקן.",
+      "הנתיב אינו מקבל קלט עבור הקובייה ולכן הלקוח אינו יכול לבחור את התוצאה.",
       "בדיקת available_actions מונעת שתי זריקות באותו תור.",
     ],
     verify: [
-      "הפעילו PROPERTY_EMPIRE_TESTING=1 ושלחו X-Test-Dice-Roll: 3.",
-      "הציבו שחקן במיקום 14 ובדקו שתוצאה 3 מעבירה למיקום 1 ומוסיפה 200.",
+      "שלחו מספר בקשות roll ובדקו שהערך המדווח בכל אירוע נמצא בטווח 1–6.",
+      "עקבו אחר תורות עד מעבר בנקודת היציאה ובדקו שהאירוע מדווח על בונוס 200.",
       "הריצו בדיקת תרגיל 4.",
     ],
   },

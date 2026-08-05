@@ -34,7 +34,6 @@ pip install -r requirements.txt
 Read `docs/student-backend-exercises-he/01_health_check.docx`, create your ASGI application, and start it on any free port:
 
 ```bash
-set PROPERTY_EMPIRE_TESTING=1
 uvicorn <your_module>:app --reload --port 8123
 ```
 

@@ -1,8 +1,6 @@
 services:
   api:
     image: oresperansa/monopoly-fastapi-api:latest
-    environment:
-      PROPERTY_EMPIRE_TESTING: "1"
     ports:
       - "${API_PORT:-8000}:8000"
 
