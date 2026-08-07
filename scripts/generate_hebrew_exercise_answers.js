@@ -153,7 +153,7 @@ def create_game(request: CreateGameRequest, service=Depends(get_game_service)):
       "השירות שומר ומחזיר את אותו משחק, כולל אירוע הפתיחה.",
     ],
     verify: [
-      "שלחו POST /api/game עם {\"player_names\":[\"סיגית\",\"אמיר\"]}.",
+      "שלחו POST /api/game עם {\"player_names\":[\"סיגיט\",\"אמיר\"]}.",
       "בדקו len(board) == 16, current_player_id == 1 ו־available_actions == [\"roll\"].",
       "שלחו שמות כפולים או שם ריק וודאו שמתקבל 422. הריצו בדיקת תרגיל 2.",
     ],
@@ -296,12 +296,12 @@ def roll(service=Depends(get_game_service)):
     ],
   },
   {
-    file: "05_tile_effects_answer.docx",
-    title: "תרגיל 5: השפעות משבצות",
+    file: "06_tile_effects_answer.docx",
+    title: "תרגיל 6: השפעות משבצות",
     task: "להרחיב את פעולת הזריקה כך שלאחר התנועה השרת יפתור את השפעת המשבצת: פרס, תשלום, הפתעה או נכס פנוי.",
     criteria: [
       "reward מוסיפה amount ו־penalty מפחיתה amount.",
-      "surprise בוחרת אפקט חוקי ומעדכנת כסף או מיקום.",
+      "surprise בוחרת באקראי אחת משש תוצאות מוגדרות: gain_100, lose_50, collect_50, pay_25, forward_2 או backward_2.",
       "נכס פנוי אינו נקנה אוטומטית אלא מפרסם buy ו־end_turn.",
       "כל תוצאה מעדכנת last_event ואת סוף event_log.",
     ],
@@ -330,16 +330,34 @@ def roll(service=Depends(get_game_service)):
         player.change_money(-tile.amount)
         game.add_event(f"{player.name} paid {tile.amount} for {tile.name}.")
     elif isinstance(tile, SurpriseTile):
-        effect = random.choice(["gain_100", "lose_50", "forward_2"])
+        effect = random.choice([
+            "gain_100", "lose_50", "collect_50",
+            "pay_25", "forward_2", "backward_2",
+        ])
         if effect == "gain_100":
             player.change_money(100)
             game.add_event(f"Surprise: {player.name} received 100.")
         elif effect == "lose_50":
             player.change_money(-50)
             game.add_event(f"Surprise: {player.name} paid 50.")
-        else:
+        elif effect == "collect_50":
+            for other in game.players:
+                if other.id != player.id and not other.is_bankrupt:
+                    other.change_money(-50)
+                    player.change_money(50)
+            game.add_event(f"Surprise: {player.name} received 50 from every player.")
+        elif effect == "pay_25":
+            for other in game.players:
+                if other.id != player.id and not other.is_bankrupt:
+                    player.change_money(-25)
+                    other.change_money(25)
+            game.add_event(f"Surprise: {player.name} paid 25 to every player.")
+        elif effect == "forward_2":
             player.position = (player.position + 2) % len(game.board)
             game.add_event(f"Surprise: {player.name} moved forward 2.")
+        else:
+            player.position = (player.position - 2) % len(game.board)
+            game.add_event(f"Surprise: {player.name} moved backward 2.")
     else:
         game.add_event(f"{player.name} landed on {tile.name}.")
 
@@ -362,12 +380,12 @@ return self.repository.save(game)`,
     verify: [
       "כפו תוצאות קובייה שמגיעות למשבצות reward, penalty ו־surprise ובדקו את ההפרש בכסף.",
       "נחתו על נכס פנוי וודאו שהבעלות והכסף לא השתנו וש־buy זמינה.",
-      "הריצו בדיקת תרגיל 5.",
+      "הריצו בדיקת תרגיל 6.",
     ],
   },
   {
-    file: "06_buy_property_answer.docx",
-    title: "תרגיל 6: רכישת נכס",
+    file: "07_buy_property_answer.docx",
+    title: "תרגיל 7: רכישת נכס",
     task: "להוסיף POST /api/game/buy שרוכש נכס פנוי כאשר הפעולה מותרת ומעדכן כסף ושתי תצוגות בעלות באותה פעולה.",
     criteria: [
       "הרכישה אפשרית רק כאשר buy מופיעה ב־available_actions.",
@@ -416,12 +434,12 @@ def buy(service: GameService = Depends(get_game_service)) -> ActionResponse:
     verify: [
       "כפו זריקה 1, קנו את ירדן ובדקו: money=1400, owner_id=1 ו־owned_tile_ids=[1].",
       "שלחו buy פעם נוספת ובדקו 409 ושמצב המשחק זהה למצב שלפני הבקשה.",
-      "הריצו בדיקת תרגיל 6.",
+      "הריצו בדיקת תרגיל 7.",
     ],
   },
   {
-    file: "07_turns_and_rent_answer.docx",
-    title: "תרגיל 7: תורות ושכירות",
+    file: "08_rent_and_advanced_turns_answer.docx",
+    title: "תרגיל 8: שכירות וכללי תור מתקדמים",
     task: "להוסיף סיום תור מעגלי ולחייב שכירות כאשר שחקן נוחת על נכס של שחקן אחר.",
     criteria: [
       "POST /api/game/end-turn עובר לשחקן הפעיל הבא ומחזיר available_actions=[roll].",
@@ -485,13 +503,13 @@ game.add_event(
     verify: [
       "נסו end-turn מיד לאחר יצירה וצפו ל־409 ללא שינוי.",
       "לאחר roll בצעו end-turn ובדקו שהשחקן הבא מקבל current_player_id ו־roll.",
-      "צרו בעלות, הנחיתו שחקן אחר על הנכס והשוו את הירידה והעלייה בכסף. הריצו תרגיל 7.",
+      "צרו בעלות, הנחיתו שחקן אחר על הנכס והשוו את הירידה והעלייה בכסף. הריצו תרגיל 8.",
     ],
   },
   {
-    file: "08_complete_game_answer.docx",
-    title: "תרגיל 8: מחזור חיים ומשחק מלא",
-    task: "להשלים פשיטת רגל, הכרזת מנצח ואיפוס, ולוודא שכל שמונת השלבים עובדים יחד דרך HTTP בלבד.",
+    file: "09_complete_game_answer.docx",
+    title: "תרגיל 9: מחזור חיים ומשחק מלא",
+    task: "להשלים פשיטת רגל, הכרזת מנצח ואיפוס, ולוודא שכל תשעת השלבים עובדים יחד דרך HTTP בלבד.",
     criteria: [
       "כסף שלילי מסמן is_bankrupt=true ושחקן כזה אינו מקבל תורות.",
       "כאשר נשאר שחקן פעיל אחד, status=finished, winner_id נקבע ו־available_actions ריקה.",
@@ -584,10 +602,71 @@ app.include_router(game_router, prefix="/api")`,
     verify: [
       "הריצו תרחיש שבו שחקן יורד מתחת ל־0 ובדקו שהוא מדולג בתור.",
       "כאשר נותר שחקן אחד, ודאו finished, winner_id ורשימת פעולות ריקה; נסו פעולה וצפו ל־409.",
-      "שלחו reset ובדקו not_started ורשימות ריקות. הריצו checkpoint 8 במצב cumulative מה־UI.",
+      "שלחו reset ובדקו not_started ורשימות ריקות. הריצו checkpoint 9 במצב cumulative מה־UI.",
     ],
   },
 ];
+
+const endTurnAnswer = {
+  file: "05_end_turn_answer.docx",
+  title: "תרגיל 5: סיום תור ומעבר בין שחקנים",
+  task: "להוסיף POST /api/game/end-turn שמעביר את השליטה לשחקן הבא ומחזיר את roll כפעולה הזמינה.",
+  criteria: [
+    "end-turn חוקית רק לאחר roll.",
+    "current_player_id עובר לשחקן הבא ובסוף הרשימה חוזר לראשון.",
+    "בתחילת התור החדש available_actions היא בדיוק [roll].",
+    "בקשה מוקדמת מחזירה 409 ואינה משנה מצב.",
+  ],
+  explanation: [
+    "מעבר התור הוא פעולה נפרדת מהזריקה. השרת, ולא הממשק, מחליט מי השחקן הבא ושומר את הסדר המעגלי.",
+    "לאחר שקיימת פעולת end-turn אפשר להריץ מספר תורות ולבדוק גם מעבר דרך Start באופן טבעי.",
+  ],
+  code: [{
+    label: "פעולת end_turn בשירות המשחק",
+    text: `def end_turn(self) -> Game:
+    game = self.get_game()
+    self._require_action(game, "end_turn")
+    next_index = (game.current_player_index + 1) % len(game.players)
+    game.current_player_index = next_index
+    game.available_actions = ["roll"]
+    game.add_event(f"It is now {game.players[next_index].name}'s turn.")
+    return self.repository.save(game)`,
+  }],
+  why: [
+    "פעולה נפרדת מונעת מ-roll להעביר תור באופן אוטומטי.",
+    "חישוב modulo מחזיר את הסבב לשחקן הראשון לאחר האחרון.",
+    "בדיקת available_actions מונעת סיום תור לפני זריקה.",
+  ],
+  verify: [
+    "נסו end-turn מיד לאחר יצירה וצפו ל-409 ללא שינוי.",
+    "לאחר roll בצעו end-turn ובדקו שהשחקן הבא מקבל current_player_id ו-roll.",
+    "המשיכו תורות עד חזרה לשחקן הראשון והריצו checkpoint 5.",
+  ],
+};
+
+answers.splice(4, 0, endTurnAnswer);
+Object.assign(answers[5], {
+  file: "06_tile_effects_answer.docx",
+  title: "תרגיל 6: השפעות משבצות",
+  verify: answers[5].verify.map((text) => text.replace("תרגיל 5", "תרגיל 6")),
+});
+Object.assign(answers[6], {
+  file: "07_buy_property_answer.docx",
+  title: "תרגיל 7: רכישת נכס",
+  verify: answers[6].verify.map((text) => text.replace("תרגיל 6", "תרגיל 7")),
+});
+Object.assign(answers[7], {
+  file: "08_rent_and_advanced_turns_answer.docx",
+  title: "תרגיל 8: שכירות וכללי תור מתקדמים",
+  task: "להרחיב את כללי הנכסים כך שנחיתה על נכס של שחקן אחר מחייבת שכירות, ולדלג על שחקנים שפשטו רגל.",
+  verify: answers[7].verify.map((text) => text.replace("תרגיל 7", "תרגיל 8")),
+});
+Object.assign(answers[8], {
+  file: "09_complete_game_answer.docx",
+  title: "תרגיל 9: מחזור חיים ומשחק מלא",
+  task: answers[8].task.replace("שמונת השלבים", "תשעת השלבים"),
+  verify: answers[8].verify.map((text) => text.replace("checkpoint 8", "checkpoint 9")),
+});
 
 function rtlRun(text, options = {}) {
   return new TextRun({
@@ -659,7 +738,7 @@ function codeTable(block) {
 
 function createDocument(answer, index) {
   const children = [
-    rtlParagraph(`פתרון מוצע • Sigit Empire • תרגיל ${index + 1} מתוך 8`, {
+    rtlParagraph(`פתרון מוצע • Sigit Empire • תרגיל ${index + 1} מתוך ${answers.length}`, {
       spacing: { after: 80 },
       run: { bold: true, size: 19, color: "B7791F" },
     }),

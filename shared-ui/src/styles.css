@@ -666,6 +666,7 @@ p {
 
 .result-console pre {
   color: #b9c6c1;
+  direction: ltr;
   font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   font-size: 12px;
   line-height: 1.65;
@@ -673,6 +674,8 @@ p {
   max-height: 520px;
   overflow: auto;
   padding: 18px;
+  text-align: left;
+  unicode-bidi: plaintext;
   white-space: pre-wrap;
 }
 

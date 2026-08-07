@@ -8,7 +8,7 @@ type Props = {
 };
 
 export function GameSetup({ busy, error, onStart }: Props) {
-  const [names, setNames] = useState(["סיגית", "אמיר"]);
+  const [names, setNames] = useState(["סיגיט", "אמיר"]);
 
   function updateName(index: number, value: string) {
     setNames(names.map((name, currentIndex) => (currentIndex === index ? value : name)));

@@ -69,8 +69,8 @@ export function CheckpointLab({ apiUrl, onApiUrlChange }: Props) {
       <div className="lab-grid">
         <div className="checkpoint-list">
           <div className="section-title">
-            <div><span>מסלול הלמידה</span><h2>8 תרגילים ממוקדים</h2></div>
-            <span className="count-pill">נטענו {checkpoints.length}/8</span>
+            <div><span>מסלול הלמידה</span><h2>9 תרגילים ממוקדים</h2></div>
+            <span className="count-pill">נטענו {checkpoints.length}/9</span>
           </div>
           {checkpoints.map((checkpoint) => {
             const status = statuses[checkpoint.id] ?? "idle";

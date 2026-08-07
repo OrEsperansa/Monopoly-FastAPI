@@ -1,41 +1,9 @@
 import re
 
-import pytest
-
-from conftest import action_state, create_game, roll
+from conftest import action_state, create_game, expect, fail_check, roll
 
 
 RENT_PATTERN = re.compile(r"^(.+) paid (\d+) rent to (.+) for (.+)\.$")
-
-
-def test_end_turn_rotates_and_restores_roll(api):
-    create_game(api, ["Ada", "Linus", "Grace"])
-    roll(api)
-    state = action_state(api.post("/api/game/end-turn"))
-    assert state["current_player_id"] == 2
-    assert state["available_actions"] == ["roll"]
-
-
-def test_unavailable_actions_return_409_without_state_change(api):
-    before = create_game(api)
-    response = api.post("/api/game/end-turn")
-    assert response.status_code == 409
-    assert "detail" in response.json()
-    assert api.get("/api/game").json() == before
-
-    roll(api)
-    before = api.get("/api/game").json()
-    response = api.post("/api/game/roll")
-    assert response.status_code == 409
-    assert api.get("/api/game").json() == before
-
-
-def test_turn_order_wraps_around(api):
-    create_game(api, ["Ada", "Linus"])
-    for expected_id in [2, 1]:
-        roll(api)
-        state = action_state(api.post("/api/game/end-turn"))
-        assert state["current_player_id"] == expected_id
 
 
 def test_landing_on_another_players_property_transfers_rent(api):
@@ -52,8 +20,9 @@ def test_landing_on_another_players_property_transfers_rent(api):
             before_money = {player["name"]: player["money"] for player in before["players"]}
             after_money = {player["name"]: player["money"] for player in state["players"]}
             start_bonus = 200 if any("received 200 for Start" in event for event in new_events) else 0
-            assert after_money[renter_name] == before_money[renter_name] + start_bonus - amount
-            assert after_money[owner_name] == before_money[owner_name] + amount
+            context = {"renter": renter_name, "owner": owner_name, "rent": amount, "start_bonus": start_bonus}
+            expect("Deduct rent from the renter", "POST /api/game/roll", None, before_money[renter_name] + start_bonus - amount, after_money[renter_name], json_path=f"$.state.players[name={renter_name}].money", calculation_context=context)
+            expect("Pay rent to the owner", "POST /api/game/roll", None, before_money[owner_name] + amount, after_money[owner_name], json_path=f"$.state.players[name={owner_name}].money", calculation_context=context)
             return
 
         if state["status"] == "finished":
@@ -65,4 +34,4 @@ def test_landing_on_another_players_property_transfers_rent(api):
             if buyer["money"] >= tile["price"]:
                 state = action_state(api.post("/api/game/buy"))
         state = action_state(api.post("/api/game/end-turn"))
-    pytest.fail("No rent transfer occurred within 500 turns.")
+    fail_check("Transfer rent between players", "POST /api/game/roll", None, "At least one rent transfer", "No rent event was observed", calculation_context={"turns_checked": 500})

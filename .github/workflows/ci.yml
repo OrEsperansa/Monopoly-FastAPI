@@ -28,14 +28,9 @@ jobs:
       - name: Build UI
         working-directory: shared-ui
         run: npm ci && npm run build
-      - name: Generate and validate Word documents
-        run: |
-          npm install --no-save docx
-          node scripts/generate_hebrew_backend_exercises.js
-          python scripts/validate_learning_assets.py
+      - name: Validate exercise READMEs
+        run: python scripts/validate_learning_assets.py
       - name: Run HTTP checkpoints
-        env:
-          PROPERTY_EMPIRE_TESTING: "1"
         run: |
           uvicorn app.main:app --app-dir instructor/solution-api --host 127.0.0.1 --port 8123 &
           API_PID=$!
@@ -45,7 +40,7 @@ jobs:
             sleep 0.25
           done
           curl -fs http://127.0.0.1:8123/api/health
-          python student-tests/run_checkpoint.py 8 --api-url http://127.0.0.1:8123
+          python student-tests/run_checkpoint.py 9 --api-url http://127.0.0.1:8123
           pytest -q -p no:cacheprovider instructor/edge-tests --api-url http://127.0.0.1:8123
       - name: Validate Compose files
         run: |

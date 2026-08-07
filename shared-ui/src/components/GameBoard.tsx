@@ -104,7 +104,7 @@ export function GameBoard({ game, busy, error, onAction, onNewGame }: Props) {
                 <p>{describeTile(selectedTile, selectedTileOwner)}</p>
               </div>
             ) : (
-              <p>{game.last_event ? translateGameEvent(game.last_event) : "זרקו את הקובייה והתחילו לבנות את האימפריה של סיגית."}</p>
+              <p>{game.last_event ? translateGameEvent(game.last_event) : "זרקו את הקובייה והתחילו לבנות את האימפריה של סיגיט."}</p>
             )}
             <div className="center-stats">
               <span>

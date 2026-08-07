@@ -193,7 +193,9 @@ const exercises = [
       'תוצאת קובייה היא מספר שלם בין 1 ל-6.',
       'השחקן הנוכחי מתקדם לפי התוצאה על לוח מעגלי של 16 משבצות.',
       'מעבר דרך Start מעניק 200 כסף.',
-      'לאחר הזריקה יש לעדכן את הפעולות הזמינות לפי המשבצת שעליה השחקן נחת.',
+      'כל זריקה מוסיפה ל-event_log מחרוזת אחת עם שם השחקן, תוצאת הקובייה והמיקום החדש, ומעתיקה את אותה מחרוזת בדיוק ל-last_event.',
+      'במעבר דרך Start, אותה מחרוזת תנועה כוללת גם את הטקסט המדויק received 200 for Start; אין ליצור עבור הבונוס רשומת אירוע נפרדת.',
+      'לאחר הזריקה available_actions מכילה end_turn בלבד. POST /api/game/end-turn מעביר את התור לשחקן הבא ומחזיר את roll כפעולה הזמינה היחידה.',
       'התשובה כוללת את מצב המשחק המלא בתוך השדה state.',
     ],
     endpoints: [
@@ -201,10 +203,21 @@ const exercises = [
         method: 'POST', path: '/api/game/roll',
         what: 'זריקת קובייה ותזוזת השחקן הנוכחי.', status: '200 OK', request: [],
         response: jsonLines({ state: fullGameState({
-          availableActions: ['buy', 'end_turn'],
+          availableActions: ['end_turn'],
           player1Position: 3,
-          lastEvent: 'Ada landed on unowned קהיר.',
-          eventLog: ['Game created. Roll to begin.', 'Ada rolled 3 and moved to 3.', 'Ada landed on unowned קהיר.'],
+          lastEvent: 'Ada rolled 3 and moved to 3.',
+          eventLog: ['Game created. Roll to begin.', 'Ada rolled 3 and moved to 3.'],
+        }) }),
+      },
+      {
+        method: 'POST', path: '/api/game/end-turn',
+        what: 'סיום התור ומעבר לשחקן הבא.', status: '200 OK', request: [],
+        response: jsonLines({ state: fullGameState({
+          currentPlayerId: 2,
+          availableActions: ['roll'],
+          player1Position: 3,
+          lastEvent: "It is now Linus's turn.",
+          eventLog: ['Game created. Roll to begin.', 'Ada rolled 3 and moved to 3.', "It is now Linus's turn."],
         }) }),
       },
     ],
@@ -397,31 +410,31 @@ const learningMetadata = [
   },
   {
     duration: '75–105 דקות',
-    prerequisites: ['השלמת תרגיל 4.', 'הבנת בעלות ופעולה מותנית.'],
+    prerequisites: ['השלמת תרגיל 5.', 'הבנת בעלות ופעולה מותנית.'],
     concepts: ['סוגי משבצות.', 'עדכון אטומי של כסף ובעלות.'],
     errors: ['buy שאינו זמין מחזיר 409 ללא שינוי מצב.', 'אי אפשר לקנות משבצת שאינה נכס, נכס תפוס או נכס יקר מדי.'],
-    submission: ['פלט של checkpoint 5.', 'מצב לפני ואחרי קנייה שמראה כסף, owner_id ו-owned_tile_ids.'],
+    submission: ['פלט של checkpoint 6.', 'דוגמאות לתגמול, קנס והפתעה.'],
   },
   {
     duration: '75–120 דקות',
-    prerequisites: ['השלמת תרגיל 5.', 'הבנת השפעות כספיות ורישום אירועים.'],
+    prerequisites: ['השלמת תרגיל 6.', 'הבנת השפעות כספיות ורישום אירועים.'],
     concepts: ['שכירות והעברת כסף.', 'Reward, Penalty, Surprise ועקביות יומן האירועים.'],
     errors: ['השפעה אינה יכולה להשאיר מיקום מחוץ ללוח.', 'last_event חייב להיות הרשומה האחרונה ב-event_log.'],
-    submission: ['פלט של checkpoint 6.', 'דוגמאות לתגמול, קנס, שכירות והפתעה.'],
+    submission: ['פלט של checkpoint 7.', 'מצב לפני ואחרי קנייה שמראה כסף, owner_id ו-owned_tile_ids.'],
   },
   {
     duration: '60–90 דקות',
-    prerequisites: ['השלמת תרגיל 6.', 'הבנת מכונת מצבים פשוטה.'],
+    prerequisites: ['השלמת תרגיל 7.', 'הבנת מכונת מצבים פשוטה.'],
     concepts: ['סבב תורות ופעולות זמינות.', 'שגיאות דומיין ללא שינוי מצב.'],
     errors: ['פעולה שאינה ב-available_actions מחזירה 409.', 'GET ללא משחק מחזיר 404; שחקן שפשט רגל אינו מקבל תור.'],
-    submission: ['פלט של checkpoint 7.', 'רצף בקשות שמראה מעבר תור ושגיאה שאינה משנה מצב.'],
+    submission: ['פלט של checkpoint 8.', 'רצף בקשות שמראה תשלום שכירות.'],
   },
   {
     duration: '75–120 דקות',
-    prerequisites: ['השלמת תרגילים 1–7.', 'יכולת לחבר את כל כללי המשחק לחוזה אחד יציב.'],
+    prerequisites: ['השלמת תרגילים 1–8.', 'יכולת לחבר את כל כללי המשחק לחוזה אחד יציב.'],
     concepts: ['פשיטת רגל, ניצחון ואיפוס.', 'שרת כמקור האמת היחיד עבור הממשק.'],
     errors: ['לאחר סיום המשחק אין פעולות זמינות.', 'reset מחזיר מצב not_started מלא ועקבי.'],
-    submission: ['פלט של checkpoint 8.', 'הדגמה מלאה דרך הממשק וצילום מסך.', 'השתקפות קצרה: החלטה אחת, תקלה אחת ומה למדתם.'],
+    submission: ['פלט של checkpoint 9.', 'הדגמה מלאה דרך הממשק וצילום מסך.', 'השתקפות קצרה: החלטה אחת, תקלה אחת ומה למדתם.'],
   },
 ];
 
@@ -480,10 +493,10 @@ Object.assign(exercises[2], {
   goal: 'להוכיח שמצב המשחק נשמר בין בקשות ולהחזיר את המשחק הפעיל בלי ליצור משחק חדש.',
   requirements: [
     'תרגיל זה אינו מוסיף יצירה נוספת. השתמשו ב-POST /api/game מתרגיל 2 רק כדי להכין מצב לבדיקה.',
-    'GET /api/game מחזיר את ה-GameState האחרון שנשמר בשרת, בדיוק באותו חוזה JSON שהוחזר בעת היצירה.',
+    'GET /api/game מחזיר את ה-GameState האחרון שנשמר בשרת, בדיוק באותו מבנה JSON שהוחזר בעת היצירה.',
     'קריאת GET היא לקריאה בלבד: היא אינה משנה תור, כסף, מיקום, בעלות, פעולות זמינות או יומן אירועים.',
     'מספר קריאות GET רצופות מחזירות אותו מצב כל עוד לא בוצעה פעולת משחק אחרת.',
-    'כאשר עדיין לא נוצר משחק, הבקשה מחזירה 404 וגוף JSON עם המפתח detail.',
+    'כאשר עדיין לא נוצר משחק, הבקשה מחזירה 404 עם הודעה מתאימה שמסבירה את השגיאה.',
     'אם בקשת יצירה חדשה נכשלת בוולידציה, המשחק התקין הקודם נשאר שמור וזמין לשליפה.',
   ],
   endpoints: [{
@@ -494,19 +507,20 @@ Object.assign(exercises[2], {
     'לאחר יצירה, GET מחזיר מצב זהה לתשובת ה-POST.',
     'שתי קריאות GET רצופות מחזירות אותו JSON.',
     'יצירה שנדחתה ב-422 אינה מוחקת או מחליפה את המשחק השמור.',
-    'GET לפני יצירת משחק מחזיר 404 עם detail.',
+    'GET לפני יצירת משחק מחזיר 404 עם הודעה מתאימה שמסבירה את השגיאה.',
   ],
 });
 
 Object.assign(exercises[4], {
-  file: '05_tile_effects.docx',
-  title: 'תרגיל 5: השפעות משבצות',
+  file: '06_tile_effects.docx',
+  title: 'תרגיל 6: השפעות משבצות',
   goal: 'להרחיב את פעולת ה-roll שכבר קיימת כך שהשרת יפתור את השפעת המשבצת שעליה נחת השחקן.',
   requirements: [
     'אין נקודת קצה חדשה בתרגיל זה. POST /api/game/roll מתרגיל 4 ממשיכה לבצע תנועה וכעת גם מפעילה את סוג המשבצת.',
     'נחיתה על reward מוסיפה את amount לכסף; נחיתה על penalty מורידה את amount.',
-    'נחיתה על surprise מפעילה אחת מהתוצאות המוגדרות של המשחק ומשאירה מיקום וכסף במצב חוקי.',
-    'נחיתה על נכס פנוי אינה קונה אותו: היא רק מוסיפה buy לצד end_turn ברשימת available_actions.',
+    'נחיתה על surprise בוחרת באקראי תוצאה אחת: קבלת 100, תשלום 50, גביית 50 מכל שחקן פעיל אחר, תשלום 25 לכל שחקן פעיל אחר, תנועה קדימה בשתי משבצות או תנועה אחורה בשתי משבצות.',
+    'לאחר כל תוצאת Surprise נשארת רק end_turn, ונוסף אירוע שמתאר את התוצאה ומכיל את המילה המדויקת Surprise.',
+    'נחיתה על נכס פנוי אינה קונה אותו ואינה משנה כסף או בעלות: היא רק מוסיפה buy לצד end_turn ברשימת available_actions. הרכישה מתבצעת רק בבקשת POST /api/game/buy הנפרדת, שתמומש בתרגיל 7.',
     'כל השפעה מעדכנת last_event ומוסיפה אותו בסוף event_log. לאחר פתרון משבצת שאינה נכס פנוי נשארת רק end_turn.',
   ],
   endpoints: [{
@@ -528,8 +542,8 @@ Object.assign(exercises[4], {
 });
 
 Object.assign(exercises[5], {
-  file: '06_buy_property.docx',
-  title: 'תרגיל 6: קניית נכס',
+  file: '07_buy_property.docx',
+  title: 'תרגיל 7: קניית נכס',
   goal: 'להוסיף פעולה חדשה שקונה נכס פנוי רק כאשר השרת פרסם שהפעולה זמינה.',
   requirements: [
     'POST /api/game/buy מותרת רק כאשר buy מופיעה ב-available_actions של המצב הנוכחי.',
@@ -559,8 +573,8 @@ Object.assign(exercises[5], {
 });
 
 Object.assign(exercises[6], {
-  file: '07_turns_and_rent.docx',
-  title: 'תרגיל 7: תורות ושכירות',
+  file: '08_rent_and_advanced_turns.docx',
+  title: 'תרגיל 8: שכירות וכללי תור מתקדמים',
   goal: 'להעביר את התור בצורה עקבית ולחייב שכירות כאשר שחקן נוחת על נכס של שחקן אחר.',
   requirements: [
     'POST /api/game/end-turn היא הפעולה החדשה: היא מעבירה את current_player_id לשחקן הפעיל הבא באופן מעגלי ומחזירה available_actions עם roll בלבד.',
@@ -588,15 +602,15 @@ Object.assign(exercises[6], {
 });
 
 Object.assign(exercises[7], {
-  file: '08_complete_game.docx',
-  title: 'תרגיל 8: מחזור חיים ומשחק מלא',
+  file: '09_complete_game.docx',
+  title: 'תרגיל 9: מחזור חיים ומשחק מלא',
   goal: 'להשלים פשיטת רגל, ניצחון ואיפוס ולוודא שכל היכולות מהתרגילים הקודמים פועלות יחד דרך HTTP בלבד.',
   requirements: [
     'כאשר כסף של שחקן יורד מתחת ל-0 הוא מסומן is_bankrupt ואינו מקבל תורות נוספים.',
     'כאשר נשאר שחקן פעיל אחד status הופך ל-finished, winner_id הוא מזהה המנצח ו-available_actions הופכת לרשימה ריקה.',
     'לאחר סיום המשחק כל פעולת משחק שאינה reset מחזירה 409 ואינה משנה את מצב הסיום.',
     'POST /api/game/reset היא נקודת הקצה החדשה בתרגיל זה. היא מחזירה state במצב not_started עם players, board ו-available_actions ריקים.',
-    'כל נקודות הקצה מהתרגילים 1–7 ממשיכות לעמוד באותו חוזה. הממשק רק מציג GameState ושולח פעולות שמופיעות ב-available_actions.',
+    'כל נקודות הקצה מהתרגילים 1–8 ממשיכות לעמוד באותו חוזה. הממשק רק מציג GameState ושולח פעולות שמופיעות ב-available_actions.',
     'השרת נשאר מקור האמת היחיד לכסף, מיקום, בעלות, תור, אירועים, פשיטת רגל ומנצח.',
   ],
   endpoints: [{
@@ -616,7 +630,7 @@ Object.assign(exercises[7], {
     'תרחיש HTTP מלא מגיע לקנייה, שכירות, פשיטת רגל ומנצח.',
     'במצב finished יש winner_id ואין פעולות זמינות.',
     'reset מחזיר חוזה not_started מלא וריק.',
-    'כל שמונת ה-checkpoints עוברים במצב cumulative מתוך ה-UI.',
+    'כל תשעת ה-checkpoints עוברים במצב cumulative מתוך ה-UI.',
   ],
 });
 
@@ -692,7 +706,7 @@ const exerciseNarratives = [
       'הממשק שולח GET כדי לקרוא את המשחק הפעיל.',
       'השירות מחזיר את אותו GameState שנשמר, ללא תנועה, חיוב או אירוע חדש.',
       'קריאות חוזרות מחזירות אותו מצב עד שפעולת משחק אחרת משנה אותו.',
-      'אם עדיין אין משחק פעיל, מוחזרת שגיאת 404 עם הסבר בשדה detail.',
+      'אם עדיין אין משחק פעיל, מוחזרת שגיאת 404 עם הודעה מתאימה שמסבירה את השגיאה.',
     ],
     terms: [
       'Stored state — המצב האחרון שהשרת זוכר בין שתי בקשות HTTP נפרדות.',
@@ -784,6 +798,128 @@ const exerciseNarratives = [
     boundary: 'אין להוסיף חוקים מעבר לחוזה שנלמד. הצלחה פירושה שכל היכולות הקודמות פועלות יחד והשרת נשאר מקור האמת היחיד.',
   },
 ];
+
+const endTurnExercise = {
+  file: '05_end_turn.docx',
+  title: 'תרגיל 5: סיום תור ומעבר בין שחקנים',
+  goal: 'לאפשר לשחקן שסיים לזרוק להעביר את השליטה לשחקן הבא ולהמשיך משחק לאורך מספר תורות.',
+  requirements: [
+    'POST /api/game/end-turn אינה מקבלת גוף והיא חוקית רק כאשר end_turn מופיעה ב-available_actions.',
+    'סיום תור מעביר את current_player_id לשחקן הבא לפי סדר המזהים; לאחר האחרון חוזרים לראשון.',
+    'בתחילת התור החדש available_actions היא בדיוק ["roll"].',
+    'end-turn לפני roll מחזירה 409 עם הודעה מתאימה ואינה משנה את מצב המשחק.',
+    'לאורך מספר תורות, מעבר דרך Start מוסיף 200 ואירוע התנועה מכיל received 200 for Start.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game/end-turn', what: 'סיום התור ומעבר לשחקן הבא.', status: '200 OK או 409', request: [],
+    response: jsonLines({ state: fullGameState({
+      currentPlayerId: 2,
+      availableActions: ['roll'],
+      lastEvent: "It is now Linus's turn.",
+      eventLog: ['Game created. Roll to begin.', 'Ada rolled 3 and moved to 3.', "It is now Linus's turn."],
+    }) }),
+  }],
+  checks: [
+    'לאחר roll, קריאת end-turn מעבירה לשחקן הבא ומחזירה roll כפעולה היחידה.',
+    'לאחר השחקן האחרון התור חוזר לשחקן הראשון.',
+    'end-turn לפני roll מחזירה 409 ללא שינוי מצב.',
+    'הרצת תורות רצופים מאפשרת לבדוק מעבר דרך Start ואת בונוס 200.',
+  ],
+};
+
+exercises[3].requirements = exercises[3].requirements.map((text) => (
+  text.includes('POST /api/game/end-turn')
+    ? 'לאחר הזריקה available_actions מכילה end_turn בלבד; פעולת end-turn עצמה מתווספת בתרגיל 5.'
+    : text
+));
+exercises[3].endpoints = exercises[3].endpoints.filter((endpoint) => endpoint.path !== '/api/game/end-turn');
+exercises.splice(4, 0, endTurnExercise);
+
+Object.assign(exercises[5], {
+  file: '06_tile_effects.docx',
+  title: 'תרגיל 6: השפעות משבצות',
+  requirements: exercises[5].requirements.map((text) => text.replace('שתמומש בתרגיל 6', 'שתמומש בתרגיל 7')),
+});
+Object.assign(exercises[6], {
+  file: '07_buy_property.docx',
+  title: 'תרגיל 7: קניית נכס',
+});
+Object.assign(exercises[7], {
+  file: '08_rent_and_advanced_turns.docx',
+  title: 'תרגיל 8: שכירות וכללי תור מתקדמים',
+  goal: 'להעביר שכירות כאשר שחקן נוחת על נכס של שחקן אחר ולדלג על שחקנים שפשטו רגל.',
+  requirements: [
+    'אין נקודת קצה חדשה: POST /api/game/roll מפעילה שכירות ו-POST /api/game/end-turn מדלגת על שחקנים שפשטו רגל.',
+    'rent יורד מהשוכר ומתווסף לבעלים באותה פעולה; נחיתה על נכס עצמי אינה מעבירה כסף.',
+    'אם השוכר עבר Start, מוסיפים תחילה 200 ולאחר מכן מפחיתים שכירות.',
+    'אירוע שכירות מתאים למבנה <renter> paid <rent> rent to <owner> for <property>.',
+    'פעולה שאינה זמינה מחזירה 409 ואינה משנה מצב.',
+  ],
+  endpoints: [{
+    method: 'POST', path: '/api/game/roll', what: 'תנועה והעברת שכירות בעת נחיתה על נכס תפוס.', status: '200 OK או 409', request: [],
+    response: ['{"state": GameState}'],
+  }],
+  checks: [
+    'השכירות יורדת ועולה באותו סכום אצל שני השחקנים.',
+    'נחיתה על נכס עצמי אינה משנה כסף.',
+    'שחקן שפשט רגל אינו מקבל תור.',
+    'last_event זהה לאיבר האחרון ב-event_log.',
+  ],
+});
+Object.assign(exercises[8], {
+  file: '09_complete_game.docx',
+  title: 'תרגיל 9: מחזור חיים ומשחק מלא',
+  checks: exercises[8].checks.map((text) => text.replace('שמונת ה-checkpoints', 'תשעת ה-checkpoints')),
+});
+
+learningMetadata.splice(4, 0, {
+  duration: '45–60 דקות',
+  prerequisites: ['השלמת תרגיל 4.', 'הבנת סדר מחזורי.'],
+  concepts: ['מעבר תור.', 'אכיפת available_actions.'],
+  errors: ['end-turn לפני roll מחזיר 409.', 'פעולה שנדחתה אינה משנה מצב.'],
+  submission: ['פלט בדיקות תרגיל 5 מתוך ה-UI.', 'רצף שמציג מעבר לשחקן הבא וחזרה לראשון.'],
+});
+Object.assign(learningMetadata[5], {
+  prerequisites: ['השלמת תרגיל 5.', 'הבנת פולימורפיזם או Strategy.'],
+  submission: ['פלט בדיקות תרגיל 6 מתוך ה-UI.', 'דוגמאות לתגמול, קנס והפתעה.'],
+});
+Object.assign(learningMetadata[6], {
+  prerequisites: ['השלמת תרגיל 6.', 'הבנת בעלות ועדכון אטומי.'],
+  submission: ['פלט בדיקות תרגיל 7 מתוך ה-UI.', 'מצב לפני ואחרי קנייה.'],
+});
+Object.assign(learningMetadata[7], {
+  prerequisites: ['השלמת תרגיל 7.', 'הבנת העברת כסף בין שחקנים.'],
+  concepts: ['שכירות והעברת כסף.', 'דילוג על שחקנים שפשטו רגל.'],
+  submission: ['פלט בדיקות תרגיל 8 מתוך ה-UI.', 'רצף שמציג תשלום שכירות.'],
+});
+Object.assign(learningMetadata[8], {
+  prerequisites: ['השלמת תרגיל 8.', 'הבנת מחזור החיים של המשחק.'],
+  submission: ['פלט של checkpoint 9.', 'הדגמה מלאה דרך הממשק וצילום מסך.'],
+});
+
+instructorHints.splice(4, 0, [
+  'בדקו קודם מעבר לשחקן הבא ורק לאחר מכן חזרה מסוף הרשימה.',
+  'ודאו ש-end-turn לפני roll נדחית ללא שינוי.',
+  'השתמשו ברצף תורות כדי לצפות במעבר דרך Start.',
+]);
+
+exerciseNarratives[3].boundary = 'התרגיל עוסק בקובייה ובתנועה בלבד. מעבר תור מתווסף בתרגיל 5 והשפעות המשבצות בתרגיל 6.';
+exerciseNarratives.splice(4, 0, {
+  context: 'לאחר הזריקה השחקן סיים את פעולתו. כדי שהמשחק יוכל להמשיך, השרת צריך להעביר את השליטה לשחקן הבא ולהחזיר את roll כפעולה הזמינה.',
+  journey: [
+    'השחקן מבצע roll ומקבל end_turn כפעולה הזמינה היחידה.',
+    'הממשק שולח POST /api/game/end-turn ללא גוף.',
+    'השרת מעביר את current_player_id לשחקן הבא ומחזיר available_actions עם roll בלבד.',
+    'בסוף רשימת השחקנים התור חוזר לשחקן הראשון.',
+    'בקשה מוקדמת לסיום תור נדחית ב-409 ללא שינוי מצב.',
+  ],
+  terms: [
+    'Turn — חלון הפעולות של שחקן אחד לפני שהשליטה עוברת לבא אחריו.',
+    'Turn order — סדר השחקנים הקבוע שלפיו current_player_id מתקדם.',
+    '409 Conflict — פעולה מובנת שאינה חוקית במצב המשחק הנוכחי.',
+  ],
+  boundary: 'בשלב זה מממשים מעבר תור בלבד. השפעות משבצות, קנייה ושכירות מתווספות בתרגילים הבאים.',
+});
 
 const border = { style: BorderStyle.SINGLE, size: 1, color: 'CBD5E1' };
 

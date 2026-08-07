@@ -1,76 +1,94 @@
 from pathlib import Path
-from zipfile import ZipFile
-import os
-import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSET_ROOT = Path(os.environ.get("PROPERTY_EMPIRE_DOCX_ROOT", ROOT))
-STUDENT_DIR = ASSET_ROOT / "docs" / "student-backend-exercises-he"
-INSTRUCTOR_DOC = ASSET_ROOT / "instructor" / "property-empire-instructor-guide-he.docx"
-WORD_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+TEST_ROOT = ROOT / "student-tests"
 
 
-def read_docx(path: Path) -> tuple[str, str]:
-    with ZipFile(path) as archive:
-        bad_member = archive.testzip()
-        if bad_member:
-            raise AssertionError(f"{path}: corrupt member {bad_member}")
-        xml = archive.read("word/document.xml").decode("utf-8")
-    root = ET.fromstring(xml)
-    text = " ".join(node.text or "" for node in root.iter(WORD_NS + "t"))
-    return xml, text
+def read(path: Path) -> str:
+    assert path.is_file(), f"Missing learning document: {path.relative_to(ROOT)}"
+    text = path.read_text(encoding="utf-8")
+    assert text.startswith("# "), f"{path}: missing title"
+    assert "## מטרת התרגיל" in text, f"{path}: missing exercise objective"
+    assert "## כיצד לוודא שהתרגיל הושלם" in text, f"{path}: missing validation instructions"
+    return text
+
+
+def require(path: Path, text: str, values: list[str]) -> None:
+    missing = [value for value in values if value not in text]
+    assert not missing, f"{path}: missing tested requirements: {missing}"
 
 
 def main() -> None:
-    student_docs = sorted(path for path in STUDENT_DIR.glob("*.docx") if not path.name.startswith("~$"))
-    assert len(student_docs) == 8, f"Expected 8 student documents, found {len(student_docs)}"
-    expected_names = [f"{number:02d}_" for number in range(1, 9)]
-    assert all(path.name.startswith(prefix) for path, prefix in zip(student_docs, expected_names))
+    readmes = [TEST_ROOT / f"exercise_{number:02d}" / "README.md" for number in range(1, 10)]
+    texts = [read(path) for path in readmes]
 
-    combined = []
-    forbidden = ["game_engine/", "app/main.py", "class Game", "def create_game"]
-    required_sections = [
-        "המשימה בשפה פשוטה", "מה המשתמש מצפה שיקרה", "מונחים מקצועיים במסמך", "גבולות המשימה",
-        "זמן משוער", "ידע מוקדם", "מה נבדק בתרגיל", "מקרי שגיאה", "מה מגישים", "רשימת בדיקה",
+    requirements = [
+        ["GET /api/health", "200", "application/json", '{"status": "ok"}'],
+        [
+            "POST /api/game", "2–4", "422", "detail", "Ada", "ada", "1500", "position",
+            "is_bankrupt", "owned_tile_ids", "16", "status", "current_player_id", "winner_id",
+            "available_actions", "players", "board", "last_event", "event_log",
+        ],
+        ["GET /api/game", "200", "404", "422", "הודעה מתאימה", "אינה משנה", "אינו מוחק או מחליף"],
+        [
+            "POST /api/game/roll", "1 ל-6", "% 16", "200", "received 200 for Start",
+            "409", "אינו משנה", "state", "rolled", "moved to",
+        ],
+        [
+            "POST /api/game/end-turn", "current_player_id", '["roll"]', "409",
+            "received 200 for Start", "last_event", "event_log",
+        ],
+        [
+            "POST /api/game/roll", "reward", "penalty", "surprise", "Surprise", "property",
+            '["buy", "end_turn"]', "owner_id", "last_event", "event_log",
+        ],
+        [
+            "POST /api/game/buy", "price", "money", "owner_id", "owned_tile_ids",
+            '["end_turn"]', "409", "הודעה מתאימה", "אינה משנה",
+        ],
+        [
+            "POST /api/game/end-turn", "is_bankrupt", "409", "rent", "paid",
+            "rent to", "for <property>.", "200",
+        ],
+        [
+            "is_bankrupt", "finished", "winner_id", "available_actions", "2,000",
+            "POST /api/game/reset", "not_started", '"players": []', '"board": []',
+            '"last_event"', '"event_log"', "409", "הודעה מתאימה",
+        ],
     ]
-    for path in student_docs:
-        xml, text = read_docx(path)
-        assert "<w:bidi" in xml and "<w:rtl" in xml, f"{path}: missing RTL metadata"
-        with ZipFile(path) as archive:
-            styles = archive.read("word/styles.xml").decode("utf-8")
-            numbering = archive.read("word/numbering.xml").decode("utf-8")
-        assert 'w:top="1440"' in xml and 'w:right="1440"' in xml
-        assert 'w:bottom="1440"' in xml and 'w:left="1440"' in xml
-        assert 'w:header="708"' in xml and 'w:footer="708"' in xml
-        assert 'w:before="360"' in styles and 'w:after="200"' in styles
-        assert 'w:right="540"' in numbering and 'w:hanging="270"' in numbering
-        assert all(section in text for section in required_sections), f"{path}: missing a learning section"
-        assert not any(term in text for term in forbidden), f"{path}: contains implementation guidance"
-        combined.append(text)
+    for path, text, expected in zip(readmes, texts, requirements):
+        require(path, text, expected)
 
-    all_text = " ".join(combined)
-    endpoints = [
+    combined = "\n".join(texts)
+    for endpoint in [
         "/api/health", "/api/game", "/api/game/roll", "/api/game/buy",
         "/api/game/end-turn", "/api/game/reset",
-    ]
-    assert all(endpoint in all_text for endpoint in endpoints), "Student documents do not cover every endpoint"
+    ]:
+        assert endpoint in combined, f"Exercise READMEs do not document {endpoint}"
+
     forbidden_header = "".join(["X-Test-", "Dice-Roll"])
-    assert forbidden_header not in all_text, "Testing-only dice header must not be documented"
+    assert forbidden_header not in combined, "A testing-only dice header is still documented"
 
-    game_state_fields = [
-        "status", "current_player_id", "winner_id", "available_actions",
-        "players", "board", "last_event", "event_log",
+    markdown_entrypoints = [
+        ROOT / "README.md",
+        ROOT / "student-api" / "README.md",
+        ROOT / "instructor" / "README.md",
+        TEST_ROOT / "README.md",
+        *readmes,
     ]
-    for path, text in zip(student_docs[1:], combined[1:]):
-        assert all(field in text for field in game_state_fields), f"{path}: response example is not a complete GameState"
+    for path in markdown_entrypoints:
+        assert ".docx" not in path.read_text(encoding="utf-8").lower(), f"{path}: still directs learners to Word files"
 
-    xml, instructor_text = read_docx(INSTRUCTOR_DOC)
-    assert "<w:bidi" in xml and "<w:rtl" in xml
-    for required in ["שלוש רמות רמז", "מחוון הערכה", "50%", "20%", "15%", "10%", "5%"]:
-        assert required in instructor_text, f"Instructor guide is missing {required}"
+    for number in range(1, 10):
+        tests = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (TEST_ROOT / f"exercise_{number:02d}").glob("test_*.py")
+        )
+        assert "assert " not in tests, f"Exercise {number} has an unstructured assertion"
+        assert "expect(" in tests or "fail_check(" in tests, f"Exercise {number} has no structured checks"
 
-    print("Validated 8 student DOCX files and 1 instructor DOCX file.")
+    print("Validated 9 README exercises against the student checkpoint contracts.")
 
 
 if __name__ == "__main__":

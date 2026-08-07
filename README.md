@@ -6,7 +6,7 @@ Sigit Empire Classroom is a backend-recreation exercise with two independent app
 - `shared-ui`: a React + Vite frontend that talks to the backend only through HTTP.
 - `student-tests`: focused black-box HTTP checkpoints for each exercise.
 - `test-runner`: the small service that lets the shared UI execute those checkpoints.
-- `instructor`: clearly labeled reference solution, edge tests, and Hebrew teaching guide.
+- `instructor`: clearly labeled reference solution and edge tests.
 
 The architecture is intentionally strict:
 
@@ -31,13 +31,15 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Read `docs/student-backend-exercises-he/01_health_check.docx`, create your ASGI application, and start it on any free port:
+Read [`student-tests/exercise_01/README.md`](student-tests/exercise_01/README.md), create your ASGI application, and start it on any free port:
 
 ```bash
 uvicorn <your_module>:app --reload --port 8123
 ```
 
 Open the UI's **Test lab**, enter the URL of your backend, and run the exercise checkpoint. You can run one feature in isolation or enable **Cumulative run** to include every prerequisite.
+
+Continue through the nine README exercises in numerical order. Each README states the complete observable contract checked at that checkpoint.
 
 The command-line runner remains available as a fallback:
 

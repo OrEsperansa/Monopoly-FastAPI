@@ -1,6 +1,6 @@
 # Exercise Answers
 
-This folder contains instructor-facing Hebrew answer guides for all eight Sigit Empire backend exercises. Each Word document includes:
+This folder contains instructor-facing Hebrew answer guides for all nine Sigit Empire backend exercises. Each Word document includes:
 
 - a concise restatement of the exercise and its acceptance criteria;
 - a plain-language explanation of the solution;

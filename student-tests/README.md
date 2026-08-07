@@ -1,11 +1,27 @@
-# HTTP Checkpoints
+# תרגילי Backend ובדיקות HTTP
 
-These tests treat the backend as a black box. They import no student or reference implementation code.
+כל תיקיית `exercise_01` עד `exercise_09` מכילה README שמגדיר את דרישות התרגיל ואת בדיקות הקבלה שלו. יש לקרוא ולבצע אותם לפי הסדר:
 
-Start the API, then run:
+1. [בדיקת תקינות](exercise_01/README.md)
+2. [יצירת משחק ומצב פתיחה](exercise_02/README.md)
+3. [שמירת מצב ושליפתו](exercise_03/README.md)
+4. [קובייה, תנועה ובונוס Start](exercise_04/README.md)
+5. [סיום תור ומעבר בין שחקנים](exercise_05/README.md)
+6. [השפעות משבצות](exercise_06/README.md)
+7. [רכישת נכס](exercise_07/README.md)
+8. [שכירות וכללי תור מתקדמים](exercise_08/README.md)
+9. [פשיטת רגל, ניצחון ואיפוס](exercise_09/README.md)
 
-\`python student-tests/run_checkpoint.py 4 --api-url http://localhost:8123\`
+הבדיקות מתייחסות ל-Backend כקופסה שחורה ושולחות אליו בקשות HTTP בלבד. הן אינן מייבאות קוד של התלמיד או של פתרון הייחוס ואינן דורשות מבנה תיקיות, מחלקות או דרך מימוש מסוימת.
 
-The recommended workflow is the **Test lab** in the shared UI. Each exercise card runs its own feature tests; enable **Cumulative run** there to include exercises 1 through N.
+## הרצת בדיקות
 
-The command above runs exercises 1 through N. A failing assertion describes an observable API behavior to revisit. The tests intentionally leave implementation structure to the student.
+הדרך המומלצת היא "מעבדת הבדיקות" ב-UI. הזינו את כתובת ה-API, בחרו תרגיל והריצו אותו. מצב "הרצה מצטברת" מריץ גם את כל דרישות הקדם.
+
+אפשר להריץ תרגיל וכל קודמיו גם משורת הפקודה:
+
+```bash
+python student-tests/run_checkpoint.py 4 --api-url http://localhost:8123
+```
+
+בכישלון מוצגים הפונקציונליות שנבדקה, נקודת הקצה, הקלט, הערך הצפוי והערך שהתקבל. לפני שינוי הקוד, השוו את הפלט לדרישה המתאימה ב-README של התרגיל.

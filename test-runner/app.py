@@ -21,11 +21,12 @@ CHECKPOINTS = [
     {"id": 1, "title": "בדיקת תקינות", "feature": "החזרת תשובת JSON יציבה מ-GET /api/health."},
     {"id": 2, "title": "יצירת משחק", "feature": "בדיקת השחקנים והחזרת מצב פתיחה מלא עם 16 משבצות."},
     {"id": 3, "title": "שמירת מצב ושליפתו", "feature": "שמירת המשחק בין בקשות והחזרתו באמצעות GET /api/game."},
-    {"id": 4, "title": "קובייה ותנועה", "feature": "הזזת שחקן במסלול מעגלי ומתן פרס על מעבר בנקודת היציאה."},
-    {"id": 5, "title": "השפעות המשבצות", "feature": "הפעלת פרס, תשלום והפתעה לאחר התנועה."},
-    {"id": 6, "title": "רכישת נכס", "feature": "רכישת נכס פנוי ועדכון שתי תצוגות הבעלות."},
-    {"id": 7, "title": "תורות ושכירות", "feature": "העברת תורות, אכיפת פעולות זמינות ותשלום שכירות."},
-    {"id": 8, "title": "משחק מלא", "feature": "טיפול בפשיטת רגל, ניצחון, פעולות חסומות ואיפוס."},
+    {"id": 4, "title": "קובייה ותנועה", "feature": "הזזת שחקן במסלול מעגלי וחסימת זריקה חוזרת."},
+    {"id": 5, "title": "סיום תור", "feature": "העברת השליטה לשחקן הבא והמשך משחק לאורך מספר תורות."},
+    {"id": 6, "title": "השפעות המשבצות", "feature": "הפעלת פרס, תשלום והפתעה לאחר התנועה."},
+    {"id": 7, "title": "רכישת נכס", "feature": "רכישת נכס פנוי ועדכון שתי תצוגות הבעלות."},
+    {"id": 8, "title": "שכירות", "feature": "העברת שכירות ואכיפת כללי תור מתקדמים."},
+    {"id": 9, "title": "משחק מלא", "feature": "טיפול בפשיטת רגל, ניצחון, פעולות חסומות ואיפוס."},
 ]
 
 
@@ -61,6 +62,18 @@ def _count(pattern: str, output: str) -> int:
     return int(match.group(1)) if match else 0
 
 
+def _format_runner_failure(checkpoint: int, payload: RunRequest, output: str) -> str:
+    if "Functionality tested:" in output:
+        return output
+    return "\n".join([
+        f"Functionality tested: Run checkpoint {checkpoint} HTTP tests",
+        f"Endpoint Tested: {_target_url(str(payload.api_url))}",
+        f"Value inserted: cumulative={payload.cumulative}",
+        "Expected return value: The selected checkpoint tests complete successfully",
+        f"Got return value: {output or 'The test process failed without output'}",
+    ])
+
+
 def _run(checkpoint: int, payload: RunRequest) -> RunResult:
     numbers = range(1, checkpoint + 1) if payload.cumulative else [checkpoint]
     selected = [str(TEST_ROOT / f"exercise_{number:02d}") for number in numbers]
@@ -90,6 +103,9 @@ def _run(checkpoint: int, payload: RunRequest) -> RunResult:
         output = ((exc.stdout or "") + (exc.stderr or "")).strip()
         output += "\nCheckpoint stopped after 90 seconds. Check for a hanging API request."
         completed = subprocess.CompletedProcess(command, 124)
+
+    if completed.returncode != 0:
+        output = _format_runner_failure(checkpoint, payload, output)
 
     return RunResult(
         checkpoint=checkpoint,
