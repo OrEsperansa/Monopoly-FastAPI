@@ -1,16 +1,16 @@
 # Published Image Digests
 
-These digests identify the `v1.1` images published with this repository revision.
+These digests identify the `2026-08-08` images published with this repository revision. The corresponding `latest` tags point to the same digests.
 
 ```text
-oresperansa/monopoly-fastapi-api:v1.1
-oresperansa/monopoly-fastapi-api@sha256:5d55031817c49298dab455c213a86e0d93b0c6f53d5f54da2ff5a2555b34c54a
+oresperansa/monopoly-fastapi-api:2026-08-08
+oresperansa/monopoly-fastapi-api@sha256:8ddb1baac489410a8f65167762717e853d0054546e8c44661ab63d1e60008788
 
-oresperansa/monopoly-fastapi-ui:v1.1
-oresperansa/monopoly-fastapi-ui@sha256:144df02c8ac9bc415eef423d254f0973af08c54e9b7446de6a6dfb264ae5a1c5
+oresperansa/monopoly-fastapi-ui:2026-08-08
+oresperansa/monopoly-fastapi-ui@sha256:ea0259d1d3b0450b52596f775a69f2bba611965a90108b86d802d29466b1109d
 
-oresperansa/monopoly-fastapi-test-runner:v1.1
-oresperansa/monopoly-fastapi-test-runner@sha256:b31de98c59851aa68b70134e15b826632d85196259d3d55e4301e33352dfa65e
+oresperansa/monopoly-fastapi-test-runner:2026-08-08
+oresperansa/monopoly-fastapi-test-runner@sha256:5a0c0f663f5773e78bc1b31499a5733e9b2ee410ea7792680393e6ec050354dd
 ```
 
-To pin an image, replace its `:v1.1` value in `.env` with the corresponding `@sha256:...` reference.
+To pin an image, replace its dated tag in `.env` with the corresponding `@sha256:...` reference.

@@ -32,8 +32,9 @@ def main() -> None:
         ],
         ["GET /api/game", "200", "404", "422", "הודעה מתאימה", "אינה משנה", "אינו מוחק או מחליף"],
         [
-            "POST /api/game/roll", "1 ל-6", "% 16", "200", "received 200 for Start",
-            "409", "אינו משנה", "state", "rolled", "moved to",
+            "POST /api/game/roll", "1 ל-6", "מסלול מעגלי", "סיבוב נוסף", "200",
+            "received 200 for Start", "409", "אינו משנה", "state", "GameState",
+            "event_log", "rolled", "moved to",
         ],
         [
             "POST /api/game/end-turn", "current_player_id", '["roll"]', "409",
