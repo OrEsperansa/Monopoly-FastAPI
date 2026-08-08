@@ -1,86 +1,16 @@
-# Student API
+# Student Backend Starter
 
-This is the FastAPI reference backend for Property Empire Classroom.
+This directory intentionally contains dependencies only. Build the backend described in the Hebrew exercise READMEs without copying a prescribed project structure.
 
-## Architecture
+## Start here
 
-The backend has two separate parts:
+1. Create and activate a Python virtual environment.
+2. Run \`pip install -r requirements.txt\`.
+3. Read \`student-tests/exercise_01/README.md\`.
+4. Create an ASGI application and run it with \`uvicorn <your_module>:app --reload --port <available-port>\`.
+5. Point the shared UI at that API URL.
+6. Run \`python student-tests/run_checkpoint.py 1 --api-url http://localhost:<port>\` from the repository root.
 
-- `app`: FastAPI routes, Pydantic schemas, dependency injection, and exception handlers.
-- `game_engine`: pure Python models, services, repository, factory, and domain exceptions.
+Continue through the README files in `student-tests/exercise_01/` through `exercise_09/`. The tests observe only HTTP requests and responses; they do not require a particular file layout, class design, or implementation technique.
 
-Routes only validate HTTP input, call `GameService`, and return response models. All game rules live in the service layer.
-
-## Folder Structure
-
-```text
-app/
-  main.py
-  api/
-  schemas/
-  dependencies.py
-  exception_handlers.py
-
-game_engine/
-  models/
-  services/
-  repositories/
-  factories/
-  exceptions.py
-
-tests/
-```
-
-## Run
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-## Test
-
-```bash
-pytest
-```
-
-The tests monkeypatch `DiceService` so rolls are deterministic.
-
-## API Contract
-
-- `GET /api/health`
-- `POST /api/game`
-- `GET /api/game`
-- `POST /api/game/roll`
-- `POST /api/game/buy`
-- `POST /api/game/end-turn`
-- `POST /api/game/reset`
-
-Every game response returns the full state:
-
-- status
-- current player id
-- winner id
-- available actions
-- players
-- board
-- last event
-- event log
-
-## Why Pydantic
-
-Pydantic models define the JSON contract between backend and frontend. They validate incoming requests and guarantee predictable response shapes for the shared UI.
-
-## Why Inheritance
-
-Tiles share a common base class with `id`, `name`, and `type`. Specific tiles such as `PropertyTile`, `RewardTile`, and `PenaltyTile` inherit from that base and add only the data they need. This gives students a concrete, readable example of inheritance and polymorphism.
-
-## Patterns Used
-
-- Repository Pattern: stores the single active in-memory game.
-- Factory Pattern: creates the board.
-- Service Layer: contains business rules and use-case orchestration.
-
-No database, authentication, or frontend coupling is included.
+The checkpoint tests use the public HTTP contract only. \`POST /api/game/roll\` takes no request body or testing-only headers.

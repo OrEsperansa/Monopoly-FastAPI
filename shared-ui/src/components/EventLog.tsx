@@ -11,8 +11,8 @@ export function EventLog({ events }: Props) {
     <aside className="event-log">
       <div className="event-heading">
         <div>
-          <span>Game feed</span>
-          <h2>Event Log</h2>
+          <span>עדכוני המשחק</span>
+          <h2>יומן אירועים</h2>
         </div>
         <ScrollText size={22} />
       </div>

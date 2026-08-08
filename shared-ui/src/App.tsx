@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 
 import { action, createGame, getGame, health } from "./api";
 import { ApiConnector } from "./components/ApiConnector";
+import { AppHeader } from "./components/AppHeader";
+import { CheckpointLab } from "./components/CheckpointLab";
 import { GameBoard } from "./components/GameBoard";
 import { GameSetup } from "./components/GameSetup";
 import type { GameState } from "./types";
 
-const storedUrl = localStorage.getItem("property-empire-api-url") ?? "http://localhost:8000";
+const storedUrl = localStorage.getItem("sigit-empire-api-url") ?? localStorage.getItem("property-empire-api-url") ?? "http://localhost:8000";
 
 export function App() {
   const [apiUrl, setApiUrl] = useState(storedUrl);
@@ -14,9 +16,10 @@ export function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState<"game" | "tests">("game");
 
   useEffect(() => {
-    localStorage.setItem("property-empire-api-url", apiUrl);
+    localStorage.setItem("sigit-empire-api-url", apiUrl);
   }, [apiUrl]);
 
   async function connect() {
@@ -31,7 +34,7 @@ export function App() {
         setGame(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not connect to the API.");
+      setError(err instanceof Error ? err.message : "לא ניתן להתחבר ל-API.");
     } finally {
       setBusy(false);
     }
@@ -49,9 +52,10 @@ export function App() {
     setBusy(true);
     setError(null);
     try {
-      setGame(await operation());
+      const nextState = await operation();
+      setGame(nextState.status === "not_started" ? null : nextState);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed.");
+      setError(err instanceof Error ? err.message : "הבקשה נכשלה.");
     } finally {
       setBusy(false);
     }
@@ -59,12 +63,19 @@ export function App() {
 
   return (
     <main className="app-shell">
-      {!connected && (
-        <ApiConnector apiUrl={apiUrl} busy={busy} error={error} onApiUrlChange={setApiUrl} onConnect={connect} />
-      )}
-      {connected && !game && <GameSetup busy={busy} error={error} onStart={startGame} />}
-      {connected && game && (
-        <GameBoard game={game} busy={busy} error={error} onAction={sendAction} onNewGame={() => setGame(null)} />
+      <AppHeader apiUrl={apiUrl} connected={connected} view={view} onViewChange={setView} />
+      {view === "tests" ? (
+        <CheckpointLab apiUrl={apiUrl} onApiUrlChange={setApiUrl} />
+      ) : (
+        <div className="game-workspace">
+          {!connected && (
+            <ApiConnector apiUrl={apiUrl} busy={busy} error={error} onApiUrlChange={setApiUrl} onConnect={connect} />
+          )}
+          {connected && !game && <GameSetup busy={busy} error={error} onStart={startGame} />}
+          {connected && game && (
+            <GameBoard game={game} busy={busy} error={error} onAction={sendAction} onNewGame={() => setGame(null)} />
+          )}
+        </div>
       )}
     </main>
   );

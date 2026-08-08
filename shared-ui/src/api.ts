@@ -1,14 +1,15 @@
 import type { GameState } from "./types";
 
 async function request<T>(apiUrl: string, path: string, options: RequestInit = {}): Promise<T> {
+  const headers = options.body ? { "Content-Type": "application/json", ...options.headers } : options.headers;
   const response = await fetch(`${apiUrl}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options
+    ...options,
+    headers
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: "Request failed." }));
-    throw new Error(error.detail ?? "Request failed.");
+    const error = await response.json().catch(() => ({ detail: "הבקשה נכשלה." }));
+    throw new Error(error.detail ?? "הבקשה נכשלה.");
   }
 
   return response.json() as Promise<T>;

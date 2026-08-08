@@ -1,6 +1,6 @@
 # Shared UI
 
-This is the React + Vite + TypeScript frontend for Property Empire Classroom.
+This is the Hebrew, RTL React + Vite + TypeScript frontend for Sigit Empire Classroom.
 
 ## Run
 

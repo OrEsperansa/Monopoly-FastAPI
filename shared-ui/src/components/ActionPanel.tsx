@@ -13,29 +13,29 @@ export function ActionPanel({ actions, busy, onAction, onNewGame }: Props) {
   return (
     <section className="action-panel">
       <div className="panel-heading">
-        <span>Available actions</span>
+        <span>פעולות זמינות</span>
         <strong>{actions.length}</strong>
       </div>
       <div className="actions">
-        <button className="action-button primary" disabled={busy || !actions.includes("roll")} onClick={() => onAction("roll")} title="Roll dice">
-          <Dice5 size={19} /> Roll
+        <button className="action-button primary" disabled={busy || !actions.includes("roll")} onClick={() => onAction("roll")} title="זריקת קובייה">
+          <Dice5 size={19} /> זריקת קובייה
         </button>
-        <button className="action-button buy" disabled={busy || !actions.includes("buy")} onClick={() => onAction("buy")} title="Buy property">
-          <Banknote size={19} /> Buy
+        <button className="action-button buy" disabled={busy || !actions.includes("buy")} onClick={() => onAction("buy")} title="רכישת נכס">
+          <Banknote size={19} /> רכישה
         </button>
         <button
           className="action-button"
           disabled={busy || !actions.includes("end_turn")}
           onClick={() => onAction("end_turn")}
-          title="End turn"
+          title="סיום התור"
         >
-          <StepForward size={19} /> End Turn
+          <StepForward size={19} /> סיום תור
         </button>
-        <button className="action-button utility" disabled={busy} onClick={() => onAction("reset")} title="Reset API game">
-          <RotateCcw size={18} /> Reset
+        <button className="action-button utility" disabled={busy} onClick={() => onAction("reset")} title="איפוס המשחק ב-API">
+          <RotateCcw size={18} /> איפוס
         </button>
-        <button className="action-button utility" disabled={busy} onClick={onNewGame} title="Return to setup">
-          <Settings size={18} /> Setup
+        <button className="action-button utility" disabled={busy} onClick={onNewGame} title="חזרה להגדרת המשחק">
+          <Settings size={18} /> הגדרה מחדש
         </button>
       </div>
     </section>

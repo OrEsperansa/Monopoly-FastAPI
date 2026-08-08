@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>Property Empire - קובץ התחלה לתלמידים</title>
+  <style>
+    body {
+      direction: rtl;
+      font-family: "Arial", "Noto Sans Hebrew", sans-serif;
+      color: #111827;
+      line-height: 1.55;
+      margin: 42px;
+      font-size: 14px;
+    }
+    h1, h2, h3 {
+      color: #1f2937;
+      page-break-after: avoid;
+    }
+    h1 {
+      font-size: 28px;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 10px;
+    }
+    h2 {
+      margin-top: 30px;
+      font-size: 22px;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 5px;
+    }
+    h3 {
+      margin-top: 20px;
+      font-size: 17px;
+    }
+    .meta, .note, .deliverable {
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+    .checkpoint {
+      page-break-inside: avoid;
+      border: 1px solid #d1d5db;
+      padding: 14px 16px;
+      margin: 18px 0;
+      background: #ffffff;
+    }
+    code, pre {
+      direction: ltr;
+      unicode-bidi: embed;
+      font-family: Consolas, "Courier New", monospace;
+      background: #f3f4f6;
+      color: #111827;
+    }
+    code {
+      padding: 1px 4px;
+    }
+    pre {
+      padding: 10px;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      border: 1px solid #e5e7eb;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 7px 9px;
+      vertical-align: top;
+    }
+    th {
+      background: #e5e7eb;
+    }
+    ul, ol {
+      padding-right: 24px;
+    }
+    .small {
+      font-size: 12px;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <h1>Property Empire - פרויקט FastAPI לתלמידים</h1>
+
+  <div class="meta">
+    <p><strong>מטרת הקובץ:</strong> זהו קובץ התחלה מלא לפרויקט כיתתי. התלמידים מתקדמים בחלקים, ובכל נקודת הגשה מוסיפים יכולת אחת או כמה יכולות קטנות. כל חלק נשען על החלקים הקודמים.</p>
+    <p><strong>מבנה הפרויקט:</strong> צד שרת ב-FastAPI ותיקיית מנוע משחק טהורה ב-Python. ממשק ה-React המשותף מתקשר עם השרת רק דרך HTTP.</p>
+    <p><strong>כלל חשוב:</strong> חוקי המשחק לא נכנסים ל-routes. הם נמצאים בשכבת השירותים של <code>game_engine</code>.</p>
+  </div>
+
+  <h2>תיאור קצר של המשחק</h2>
+  <p>
+    בונים משחק לוח פשוט בסגנון רכישת נכסים. יש 2 עד 4 שחקנים, לוח עם משבצות, קובייה, כסף, תורות, רכישת נכסים, תשלום שכירות, משבצות בונוס/קנס/הפתעה, פשיטת רגל ומנצח.
+  </p>
+
+  <h2>הרצה מקומית</h2>
+  <h3>שרת FastAPI</h3>
+  <pre>cd student-api
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload</pre>
+
+  <h3>ממשק React משותף</h3>
+  <pre>cd shared-ui
+npm install
+npm run dev</pre>
+
+  <h3>בדיקות</h3>
+  <pre>cd student-api
+pytest</pre>
+
+  <div class="note">
+    <p><strong>הנחיית עבודה:</strong> אחרי כל חלק מריצים בדיקות. אם בדיקה נכשלת, מתקנים לפני שממשיכים. אין לדלג על חלקים.</p>
+  </div>
+
+  <h2>מפת תיקיות</h2>
+  <table>
+    <tr><th>תיקייה / קובץ</th><th>תפקיד</th></tr>
+    <tr><td><code>app/main.py</code></td><td>יצירת אפליקציית FastAPI וחיבור routes ו-exception handlers.</td></tr>
+    <tr><td><code>app/api/game_routes.py</code></td><td>נקודות HTTP בלבד: קבלת קלט, קריאה ל-service, החזרת response.</td></tr>
+    <tr><td><code>app/schemas/game_schemas.py</code></td><td>מודלים של Pydantic שמגדירים את חוזה ה-JSON מול הממשק.</td></tr>
+    <tr><td><code>game_engine/models</code></td><td>מחלקות הדומיין: שחקן, משחק, משבצות.</td></tr>
+    <tr><td><code>game_engine/services</code></td><td>חוקי המשחק והפעולות המרכזיות.</td></tr>
+    <tr><td><code>game_engine/repositories</code></td><td>שמירת מצב המשחק בזיכרון.</td></tr>
+    <tr><td><code>game_engine/factories</code></td><td>בניית לוח המשחק.</td></tr>
+    <tr><td><code>tests/test_api.py</code></td><td>בדיקות קבלה שמגדירות מתי כל חלק עובד.</td></tr>
+  </table>
+
+  <h2>חוזה API סופי</h2>
+  <table>
+    <tr><th>Endpoint</th><th>פעולה</th><th>תוצאה צפויה</th></tr>
+    <tr><td><code>GET /api/health</code></td><td>בדיקת חיים</td><td><code>{"status": "ok"}</code></td></tr>
+    <tr><td><code>POST /api/game</code></td><td>יצירת משחק</td><td>מצב משחק מלא</td></tr>
+    <tr><td><code>GET /api/game</code></td><td>שליפת המשחק הנוכחי</td><td>מצב משחק מלא</td></tr>
+    <tr><td><code>POST /api/game/roll</code></td><td>זריקת קובייה ותזוזה</td><td><code>{"state": ...}</code></td></tr>
+    <tr><td><code>POST /api/game/buy</code></td><td>קניית נכס</td><td><code>{"state": ...}</code></td></tr>
+    <tr><td><code>POST /api/game/end-turn</code></td><td>סיום תור</td><td><code>{"state": ...}</code></td></tr>
+    <tr><td><code>POST /api/game/reset</code></td><td>איפוס משחק</td><td>משחק במצב <code>not_started</code></td></tr>
+  </table>
+
+  <h2>כללי הגשה</h2>
+  <ul>
+    <li>כל חלק מוגש כ-checkpoint נפרד.</li>
+    <li>בכל הגשה יש לציין אילו בדיקות עוברות.</li>
+    <li>אין לשנות את ממשק ה-JSON בלי הוראה מפורשת, כי ה-React UI תלוי בו.</li>
+    <li>אין לכתוב חוקי משחק בתוך <code>app/api/game_routes.py</code>.</li>
+    <li>מותר להוסיף פונקציות עזר ושירותים אם הם שומרים על חלוקת האחריות.</li>
+  </ul>
+
+  <h2>Checkpoint 0 - הכרת הפרויקט והרצה</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>להריץ את הפרויקט, להבין את מבנה התיקיות, ולוודא שהסביבה מוכנה.</p>
+    <h3>משימות</h3>
+    <ol>
+      <li>פתחו את התיקיות <code>student-api</code> ו-<code>shared-ui</code>.</li>
+      <li>הריצו את שרת FastAPI.</li>
+      <li>הריצו את ממשק React וחברו אותו לכתובת <code>http://localhost:8000</code>.</li>
+      <li>הריצו <code>pytest</code> וקראו את שמות הבדיקות.</li>
+    </ol>
+    <div class="deliverable"><strong>הגשה:</strong> צילום מסך של השרת רץ, צילום מסך של הממשק, ורשימת 3 קבצים שנראים לכם מרכזיים בפרויקט.</div>
+  </div>
+
+  <h2>Checkpoint 1 - Health Check ומבנה FastAPI בסיסי</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>לבנות endpoint ראשון ולהכיר את FastAPI, router ו-response model.</p>
+    <h3>קבצים מרכזיים</h3>
+    <ul>
+      <li><code>app/main.py</code></li>
+      <li><code>app/api/game_routes.py</code></li>
+      <li><code>app/schemas/game_schemas.py</code></li>
+    </ul>
+    <h3>משימות</h3>
+    <ol>
+      <li>צרו router לנתיב <code>/api</code>.</li>
+      <li>הגדירו endpoint בשם <code>health</code> שמחזיר status תקין.</li>
+      <li>צרו Pydantic response model בשם <code>HealthResponse</code>.</li>
+      <li>ודאו שהנתיב <code>GET /api/health</code> מחזיר <code>{"status": "ok"}</code>.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li><code>test_health</code> עוברת.</li>
+      <li>פתיחת <code>/docs</code> בדפדפן מציגה את ה-endpoint.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> קוד ה-route, צילום מסך של Swagger, ותוצאת הבדיקה.</div>
+  </div>
+
+  <h2>Checkpoint 2 - מודלים ראשונים ויצירת משחק</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>ליצור את אובייקטי הדומיין הראשונים: שחקן, משחק ולוח בסיסי.</p>
+    <h3>קבצים מרכזיים</h3>
+    <ul>
+      <li><code>game_engine/models/player.py</code></li>
+      <li><code>game_engine/models/game.py</code></li>
+      <li><code>game_engine/factories/board_factory.py</code></li>
+      <li><code>game_engine/services/game_service.py</code></li>
+    </ul>
+    <h3>משימות</h3>
+    <ol>
+      <li>צרו מחלקת <code>Player</code> עם id, name, money, position, bankrupt flag ורשימת נכסים.</li>
+      <li>צרו מחלקת <code>Game</code> עם players, board, current player, status ו-actions.</li>
+      <li>צרו factory שמייצר לוח של 16 משבצות לפחות.</li>
+      <li>ממשו <code>create_game</code> שמקבל שמות שחקנים ומחזיר מצב משחק.</li>
+      <li>הוסיפו endpoint <code>POST /api/game</code>.</li>
+    </ol>
+    <h3>חוזה קלט</h3>
+    <pre>{
+  "player_names": ["Ada", "Linus"]
+}</pre>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>סטטוס המשחק הוא <code>active</code>.</li>
+      <li>השחקן הנוכחי הוא id 1.</li>
+      <li>הפעולה הזמינה הראשונה היא <code>roll</code>.</li>
+      <li>יש 2 עד 4 שחקנים ולוח בגודל 16.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> קבצי המודלים, factory, route, ותוצאת <code>test_create_game</code>.</div>
+  </div>
+
+  <h2>Checkpoint 3 - ולידציה וחוזה JSON</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>להגן על ה-API מפני קלט לא תקין ולייצב את צורת התשובה לממשק.</p>
+    <h3>משימות</h3>
+    <ol>
+      <li>ב-<code>CreateGameRequest</code> הגבילו מספר שחקנים ל-2 עד 4.</li>
+      <li>מנעו שמות ריקים או שמות שמכילים רק רווחים.</li>
+      <li>מנעו כפילויות שמות בלי תלות באותיות גדולות/קטנות באנגלית.</li>
+      <li>צרו response models עבור שחקנים, משבצות ומצב משחק.</li>
+      <li>ודאו שכל endpoint מחזיר מבנה JSON עקבי.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li><code>test_validation_rejects_bad_player_names</code> עוברת.</li>
+      <li>קלט לא תקין מחזיר HTTP 422.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> קובץ הסכמות והסבר קצר: למה Pydantic מתאים כאן?</div>
+  </div>
+
+  <h2>Checkpoint 4 - קובייה, תנועה ומעבר דרך Start</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>לממש זריקת קובייה, תזוזה סביב לוח מעגלי, ובונוס על מעבר במשבצת Start.</p>
+    <h3>קבצים מרכזיים</h3>
+    <ul>
+      <li><code>game_engine/services/dice_service.py</code></li>
+      <li><code>game_engine/services/movement_service.py</code></li>
+      <li><code>game_engine/services/game_service.py</code></li>
+    </ul>
+    <h3>משימות</h3>
+    <ol>
+      <li>ממשו <code>DiceService.roll</code> שמחזיר מספר בין 1 ל-6.</li>
+      <li>ממשו תזוזה לפי גודל הלוח עם חזרה לתחילת הלוח.</li>
+      <li>אם שחקן עבר את Start, הוסיפו לו 200 כסף.</li>
+      <li>אחרי זריקה, עדכנו <code>available_actions</code> לפי סוג המשבצת.</li>
+      <li>הוסיפו endpoint <code>POST /api/game/roll</code>.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>בדיקה עם קובייה מדומה מזיזה את השחקן למיקום נכון.</li>
+      <li>מעבר ממיקום 14 עם זריקה 3 מסתיים במיקום 1 ומוסיף 200.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> שירותי הקובייה והתנועה, route של roll, ותוצאות הבדיקות הרלוונטיות.</div>
+  </div>
+
+  <h2>Checkpoint 5 - ירושה במשבצות וקניית נכסים</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>להשתמש בירושה כדי לייצג סוגי משבצות שונים, ולממש קניית נכס.</p>
+    <h3>משימות</h3>
+    <ol>
+      <li>צרו מחלקת בסיס <code>Tile</code> עם id, name ו-type.</li>
+      <li>צרו <code>StartTile</code>, <code>PropertyTile</code>, <code>RewardTile</code>, <code>PenaltyTile</code>, <code>SurpriseTile</code>.</li>
+      <li>ל-<code>PropertyTile</code> הוסיפו price, rent ו-owner_id.</li>
+      <li>כאשר שחקן נוחת על נכס פנוי, אפשרו פעולה <code>buy</code>.</li>
+      <li>ממשו <code>POST /api/game/buy</code>: הורדת כסף, סימון בעלים, הוספת הנכס לרשימת השחקן.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>קניית נכס מורידה את מחיר הנכס מכסף השחקן.</li>
+      <li>הנכס מקבל <code>owner_id</code> של השחקן.</li>
+      <li>לאחר קנייה הפעולה הזמינה היא <code>end_turn</code>.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> מחלקות המשבצות, buy flow, ותשובה לשאלה: איפה בפרויקט רואים ירושה?</div>
+  </div>
+
+  <h2>Checkpoint 6 - שכירות, בונוס, קנס והפתעה</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>להוסיף אפקטים למשבצות אחרי נחיתה.</p>
+    <h3>קובץ מרכזי</h3>
+    <p><code>game_engine/services/tile_service.py</code></p>
+    <h3>משימות</h3>
+    <ol>
+      <li>אם שחקן נוחת על נכס של שחקן אחר, הורידו ממנו rent והוסיפו לבעלים.</li>
+      <li>אם שחקן נוחת על Reward, הוסיפו כסף.</li>
+      <li>אם שחקן נוחת על Penalty, הורידו כסף.</li>
+      <li>אם שחקן נוחת על Surprise, בחרו אפקט אקראי קטן, למשל רווח 100 או הפסד 100.</li>
+      <li>כתבו הודעה מתאימה ל-<code>event_log</code>.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>שכירות עוברת מהשוכר לבעל הנכס.</li>
+      <li>Reward מוסיף כסף.</li>
+      <li>Penalty מוריד כסף.</li>
+      <li>Surprise ניתן לבדיקה באמצעות בחירה אקראית מדומה.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> שירות המשבצות ותיאור קצר של כל אפקט שמומש.</div>
+  </div>
+
+  <h2>Checkpoint 7 - תורות, פעולות זמינות ושגיאות</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>להבטיח שהמשחק מתקדם לפי תור, ושלא ניתן לבצע פעולה בזמן לא מתאים.</p>
+    <h3>קבצים מרכזיים</h3>
+    <ul>
+      <li><code>game_engine/services/turn_service.py</code></li>
+      <li><code>game_engine/exceptions.py</code></li>
+      <li><code>app/exception_handlers.py</code></li>
+    </ul>
+    <h3>משימות</h3>
+    <ol>
+      <li>ממשו <code>end_turn</code> שמעביר לשחקן הבא.</li>
+      <li>דלגו על שחקנים שפשטו רגל.</li>
+      <li>השתמשו ב-<code>available_actions</code> כדי למנוע פעולה לא חוקית.</li>
+      <li>צרו חריגות דומיין כגון <code>GameNotFoundError</code> ו-<code>InvalidActionError</code>.</li>
+      <li>חברו exception handlers שמחזירים שגיאת HTTP ברורה.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>סיום תור אחרי שחקן 1 מעביר לשחקן 2.</li>
+      <li>שחקן שפשט רגל לא מקבל תור.</li>
+      <li>פעולה לא זמינה לא משנה את מצב המשחק.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> שירות התורות, חריגות, ותוצאת בדיקות התורות.</div>
+  </div>
+
+  <h2>Checkpoint 8 - פשיטת רגל, מנצח ואיפוס</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>לסגור את מחזור המשחק המלא: הפסד, ניצחון והתחלה מחדש.</p>
+    <h3>משימות</h3>
+    <ol>
+      <li>כאשר כסף של שחקן יורד מתחת ל-0, סמנו אותו כ-bankrupt.</li>
+      <li>אם נשאר רק שחקן פעיל אחד, סיימו את המשחק.</li>
+      <li>עדכנו <code>status</code> ל-<code>finished</code> ושמרו <code>winner_id</code>.</li>
+      <li>כאשר המשחק הסתיים, רשימת הפעולות הזמינות ריקה.</li>
+      <li>ממשו <code>POST /api/game/reset</code> שמחזיר מצב <code>not_started</code>.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>קנס גדול יכול לגרום לפשיטת רגל.</li>
+      <li>כאשר נשאר שחקן אחד פעיל, המשחק מסתיים.</li>
+      <li>איפוס מחזיר players ו-board ריקים.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> מנגנון סיום משחק, reset, והרצה מלאה של <code>pytest</code>.</div>
+  </div>
+
+  <h2>Checkpoint 9 - חיבור לממשק ושיפור חוויית משחק</h2>
+  <div class="checkpoint">
+    <h3>מטרה</h3>
+    <p>לוודא שהשרת עובד עם ה-React UI וללטש את מידע המשחק שמוחזר למשתמש.</p>
+    <h3>משימות</h3>
+    <ol>
+      <li>הריצו backend ו-frontend יחד.</li>
+      <li>צרו משחק דרך הממשק.</li>
+      <li>בדקו roll, buy, end turn ו-reset מהממשק.</li>
+      <li>שפרו הודעות <code>last_event</code> ו-<code>event_log</code> כך שיהיו ברורות לשחקנים.</li>
+      <li>ודאו שאין חישובי חוקי משחק בצד React.</li>
+    </ol>
+    <h3>בדיקות קבלה</h3>
+    <ul>
+      <li>ניתן לשחק לפחות 5 תורות דרך הממשק בלי שגיאה.</li>
+      <li>הפעולות בכפתורים תואמות ל-<code>available_actions</code>.</li>
+      <li>ה-log מציג מה קרה בכל פעולה.</li>
+    </ul>
+    <div class="deliverable"><strong>הגשה:</strong> צילום מסך של משחק פעיל, צילום מסך של event log, והרצה מלאה של בדיקות backend.</div>
+  </div>
+
+  <h2>מחוון הערכה מוצע</h2>
+  <table>
+    <tr><th>תחום</th><th>משקל</th><th>מה בודקים</th></tr>
+    <tr><td>נכונות פונקציונלית</td><td>40%</td><td>הבדיקות עוברות והמשחק עובד לפי החוקים.</td></tr>
+    <tr><td>ארכיטקטורה</td><td>25%</td><td>הפרדה בין routes, schemas, services, models ו-repository.</td></tr>
+    <tr><td>איכות קוד</td><td>20%</td><td>שמות ברורים, פונקציות קצרות, ללא כפילויות מיותרות.</td></tr>
+    <tr><td>עבודה עם API</td><td>10%</td><td>חוזה JSON יציב ותואם לממשק.</td></tr>
+    <tr><td>הגשה ותיעוד</td><td>5%</td><td>תיעוד קצר של מה נעשה ואילו בדיקות הורצו.</td></tr>
+  </table>
+
+  <h2>שאלות רפלקציה לסיום</h2>
+  <ol>
+    <li>איזו שכבה בפרויקט אחראית על חוקי המשחק? למה?</li>
+    <li>מה ההבדל בין Pydantic model לבין dataclass של מנוע המשחק?</li>
+    <li>איפה השתמשתם בירושה, ומה היתרון שלה במשבצות הלוח?</li>
+    <li>למה חשוב לבדוק קובייה באמצעות monkeypatch בבדיקות?</li>
+    <li>איזה שינוי הייתם מוסיפים למשחק אם היה עוד זמן?</li>
+  </ol>
+
+  <p class="small">מסמך זה נועד לשמש כקובץ פתיחה והנחיית checkpoints לפרויקט Property Empire Classroom.</p>
+</body>
+</html>
