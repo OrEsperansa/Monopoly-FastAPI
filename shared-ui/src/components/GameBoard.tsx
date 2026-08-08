@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import { Crown, MapPin, MousePointerClick } from "lucide-react";
 
 import type { GameState, Player, Tile as BoardTile } from "../types";
-import { translateGameEvent } from "../translateGameEvent";
 import { ActionPanel } from "./ActionPanel";
 import { EventLog } from "./EventLog";
 import { PlayerPanel } from "./PlayerPanel";
@@ -104,7 +103,7 @@ export function GameBoard({ game, busy, error, onAction, onNewGame }: Props) {
                 <p>{describeTile(selectedTile, selectedTileOwner)}</p>
               </div>
             ) : (
-              <p>{game.last_event ? translateGameEvent(game.last_event) : "זרקו את הקובייה והתחילו לבנות את האימפריה של סיגיט."}</p>
+              <p>{game.last_event ?? "זרקו את הקובייה והתחילו לבנות את האימפריה של סיגיט."}</p>
             )}
             <div className="center-stats">
               <span>

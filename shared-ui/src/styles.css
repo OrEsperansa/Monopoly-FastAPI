@@ -110,10 +110,12 @@ p {
 
 .app-shell {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .game-workspace {
   min-height: calc(100vh - 72px);
+  min-height: calc(100dvh - 72px);
 }
 
 .center-screen {
@@ -227,8 +229,9 @@ p {
 .game-layout {
   display: grid;
   gap: 18px;
-  grid-template-columns: 300px minmax(510px, 1fr) 320px;
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) minmax(260px, 320px);
   height: calc(100vh - 72px);
+  height: calc(100dvh - 72px);
   overflow: hidden;
   padding: 18px;
 }
@@ -707,6 +710,11 @@ p {
   padding: 18px;
 }
 
+.game-dashboard {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .dashboard-header {
   border-bottom: 1px solid rgba(245, 239, 226, 0.12);
   padding-bottom: 14px;
@@ -748,11 +756,14 @@ p {
   gap: 8px;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
-  max-height: calc(100vh - 36px);
-  max-width: calc(100vh - 36px);
+  max-height: calc(100vh - 108px);
+  max-height: calc(100dvh - 108px);
+  max-width: calc(100vh - 108px);
+  max-width: calc(100dvh - 108px);
   padding: 8px;
   place-items: stretch;
-  width: min(100%, calc(100vh - 36px));
+  width: min(100%, calc(100vh - 108px));
+  width: min(100%, calc(100dvh - 108px));
 }
 
 .board > * {
@@ -1148,6 +1159,56 @@ p {
   gap: 5px;
   line-height: 1.35;
   padding: 10px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-height: 800px) and (min-width: 861px) {
+  .game-layout {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .side-panel,
+  .event-log {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .dashboard-header {
+    padding-bottom: 10px;
+  }
+
+  .dashboard-header h1,
+  .event-log h2 {
+    font-size: 20px;
+  }
+
+  .player-list,
+  .actions {
+    gap: 6px;
+  }
+
+  .player-card {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .player-stats span {
+    padding: 3px 7px;
+  }
+
+  .action-button {
+    min-height: 40px;
+  }
+
+  .board {
+    max-height: calc(100vh - 96px);
+    max-height: calc(100dvh - 96px);
+    max-width: calc(100vh - 96px);
+    max-width: calc(100dvh - 96px);
+    width: min(100%, calc(100vh - 96px));
+    width: min(100%, calc(100dvh - 96px));
+  }
 }
 
 .events p span {

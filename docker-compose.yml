@@ -1,15 +1,15 @@
 services:
-  api:
-    image: oresperansa/monopoly-fastapi-api:latest
-    ports:
-      - "${API_PORT:-8000}:8000"
+  # api:
+  #   image: oresperansa/monopoly-fastapi-api:latest
+  #   ports:
+  #     - "${API_PORT:-8000}:8000"
 
   ui:
     image: oresperansa/monopoly-fastapi-ui:latest
     build:
       context: ./shared-ui
     depends_on:
-      - api
+      # - api
       - test-runner
     ports:
       - "${UI_PORT:-5187}:80"

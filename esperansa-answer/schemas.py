@@ -19,6 +19,14 @@ class PlayerState(ApiModel):
     is_bankrupt: bool = False
     owned_tile_ids: list[int] = Field(default_factory=list)
 
+    def remove_balance(self, amount: int) -> None:
+        if amount < 0:
+            raise ValueError("The amount removed from a player cannot be negative.")
+
+        self.money -= amount
+        if self.money < 0:
+            self.is_bankrupt = True
+
 
 class TileState(ApiModel):
     id: int

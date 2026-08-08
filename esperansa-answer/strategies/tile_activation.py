@@ -67,7 +67,7 @@ class PropertyTileActivationStrategy(TileActivationStrategy):
             other for other in game.players
             if other.id == property_tile.owner_id
         )
-        player.money -= property_tile.rent
+        player.remove_balance(property_tile.rent)
         owner.money += property_tile.rent
         add_event(
             f"{player.name} paid {property_tile.rent} rent to "
@@ -98,7 +98,7 @@ class PenaltyTileActivationStrategy(TileActivationStrategy):
         add_event: EventLogger,
     ) -> None:
         penalty_tile = cast(PenaltyTileState, tile)
-        player.money -= penalty_tile.amount
+        player.remove_balance(penalty_tile.amount)
         game.available_actions = ["end_turn"]
         add_event(f"{player.name} paid {penalty_tile.amount} for {penalty_tile.name}.")
 
@@ -124,18 +124,18 @@ class SurpriseTileActivationStrategy(TileActivationStrategy):
             player.money += 100
             event = f"Surprise: {player.name} received 100."
         elif effect == "lose_50":
-            player.money -= 50
+            player.remove_balance(50)
             event = f"Surprise: {player.name} paid 50."
         elif effect == "collect_50":
             for other in game.players:
                 if other.id != player.id and not other.is_bankrupt:
-                    other.money -= 50
+                    other.remove_balance(50)
                     player.money += 50
             event = f"Surprise: {player.name} received 50 from every player."
         elif effect == "pay_25":
             for other in game.players:
                 if other.id != player.id and not other.is_bankrupt:
-                    player.money -= 25
+                    player.remove_balance(25)
                     other.money += 25
             event = f"Surprise: {player.name} paid 25 to every player."
         elif effect == "forward_2":

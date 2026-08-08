@@ -1,7 +1,5 @@
 import { ScrollText } from "lucide-react";
 
-import { translateGameEvent } from "../translateGameEvent";
-
 type Props = {
   events: string[];
 };
@@ -22,7 +20,7 @@ export function EventLog({ events }: Props) {
         {orderedEvents.map((event, index) => (
           <p className={index === 0 ? "latest-event" : ""} key={`${event}-${index}`}>
             <span>{orderedEvents.length - index}</span>
-            {translateGameEvent(event)}
+            {event}
           </p>
         ))}
       </div>

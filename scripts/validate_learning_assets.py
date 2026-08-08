@@ -48,11 +48,11 @@ def main() -> None:
             '["end_turn"]', "409", "הודעה מתאימה", "אינה משנה",
         ],
         [
-            "POST /api/game/end-turn", "is_bankrupt", "409", "rent", "paid",
-            "rent to", "for <property>.", "200",
+            "POST /api/game/roll", "rent", "paid", "rent to", "for <property>.",
+            "200", "available_actions", "last_event", "event_log",
         ],
         [
-            "is_bankrupt", "finished", "winner_id", "available_actions", "2,000",
+            "is_bankrupt", "finished", "winner_id", "available_actions", "500",
             "POST /api/game/reset", "not_started", '"players": []', '"board": []',
             '"last_event"', '"event_log"', "409", "הודעה מתאימה",
         ],

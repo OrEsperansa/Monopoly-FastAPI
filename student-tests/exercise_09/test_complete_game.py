@@ -3,19 +3,45 @@ from conftest import action_state, create_game, expect, fail_check, roll
 
 def test_game_can_reach_bankruptcy_and_a_winner(api):
     state = create_game(api)
-    for _ in range(2000):
+    max_turns = 500
+    for turn_number in range(1, max_turns + 1):
         current = state["current_player_id"]
         state = roll(api)
+
+        unmarked_bankrupt = next(
+            (
+                player
+                for player in state["players"]
+                if player["money"] < 0 and not player["is_bankrupt"]
+            ),
+            None,
+        )
+        if unmarked_bankrupt is not None:
+            fail_check(
+                "Mark a player as bankrupt",
+                "POST /api/game/roll",
+                None,
+                True,
+                unmarked_bankrupt["is_bankrupt"],
+                json_path=f"$.state.players[id={unmarked_bankrupt['id']}].is_bankrupt",
+                calculation_context={
+                    "turn": turn_number,
+                    "player_id": unmarked_bankrupt["id"],
+                    "money": unmarked_bankrupt["money"],
+                },
+            )
+
         if state["status"] == "finished":
             break
-        if current == 1 and "buy" in state["available_actions"]:
+
+        if "buy" in state["available_actions"]:
             buyer = next(player for player in state["players"] if player["id"] == current)
             tile = state["board"][buyer["position"]]
             if buyer["money"] >= tile["price"]:
                 state = action_state(api.post("/api/game/buy"))
         state = action_state(api.post("/api/game/end-turn"))
     else:
-        fail_check("Finish the game", "POST /api/game/roll and /api/game/end-turn", None, "A finished game with a winner", state, json_path="$.state", calculation_context={"turns_checked": 2000})
+        fail_check("Finish the game", "POST /api/game/roll and /api/game/end-turn", None, "A finished game with a winner", state, json_path="$.state", calculation_context={"turns_checked": max_turns})
 
     player_ids = {player["id"] for player in state["players"]}
     expect("Mark the completed game", "POST /api/game/roll", None, "finished", state["status"], json_path="$.state.status")

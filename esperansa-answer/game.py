@@ -84,6 +84,22 @@ class GameManager:
         game = self.get_game()
         return self.get_player_by_id(game.current_player_id)
 
+    def get_next_non_bankrupt_player(self) -> PlayerState | None:
+        game = self.get_game()
+        current_index = next(
+            index
+            for index, player in enumerate(game.players)
+            if player.id == game.current_player_id
+        )
+
+        for offset in range(1, len(game.players)):
+            candidate_index = (current_index + offset) % len(game.players)
+            candidate = game.players[candidate_index]
+            if not candidate.is_bankrupt:
+                return candidate
+
+        return None
+
     def _activate_tile(self) -> None:
         game = self.get_game()
         current_player = self.get_current_player()
@@ -136,18 +152,15 @@ class GameManager:
         if "end_turn" not in game.available_actions:
             raise UnavailableActionError("end_turn")
 
-        # Move to the next player
-        current_index = next(
-            index for index, player in enumerate(game.players)
-            if player.id == game.current_player_id
-        )
-        next_index = (current_index + 1) % len(game.players)
-        next_player = game.players[next_index]
+        next_player = self.get_next_non_bankrupt_player()
+        if next_player is None:
+            raise GameError("No next non-bankrupt player is available.")
+
         game.current_player_id = next_player.id
 
         # Update available actions for the next player
         game.available_actions = ["roll"]
-        self.event_log(f"Turn ended. Next player is {next_player.name}.")
+        self.event_log(f"WOLF: {next_player.name} is turn now.")
 
         return ActionResponse(state=game)
 
@@ -166,7 +179,7 @@ class GameManager:
             raise GameError("Insufficient funds to buy this property.")
 
         # Deduct the price and assign ownership
-        current_player.money -= current_tile.price
+        current_player.remove_balance(current_tile.price)
         current_tile.owner_id = current_player.id
         current_player.owned_tile_ids.append(current_tile.id)
 
@@ -176,3 +189,18 @@ class GameManager:
         game.available_actions = ["end_turn"]
 
         return ActionResponse(state=game)
+
+    def reset_game(self) -> ActionResponse:
+        reset_event = "Game reset."
+        reset_state = GameState(
+            status="not_started",
+            current_player_id=None,
+            winner_id=None,
+            available_actions=[],
+            players=[],
+            board=[],
+            last_event=reset_event,
+            event_log=[reset_event],
+        )
+        self._active_game = None
+        return ActionResponse(state=reset_state)

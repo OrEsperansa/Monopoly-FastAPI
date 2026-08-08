@@ -845,15 +845,15 @@ Object.assign(exercises[6], {
   title: 'תרגיל 7: קניית נכס',
 });
 Object.assign(exercises[7], {
-  file: '08_rent_and_advanced_turns.docx',
-  title: 'תרגיל 8: שכירות וכללי תור מתקדמים',
-  goal: 'להעביר שכירות כאשר שחקן נוחת על נכס של שחקן אחר ולדלג על שחקנים שפשטו רגל.',
+  file: '08_rent.docx',
+  title: 'תרגיל 8: שכירות',
+  goal: 'להעביר שכירות כאשר שחקן נוחת על נכס של שחקן אחר.',
   requirements: [
-    'אין נקודת קצה חדשה: POST /api/game/roll מפעילה שכירות ו-POST /api/game/end-turn מדלגת על שחקנים שפשטו רגל.',
+    'אין נקודת קצה חדשה: POST /api/game/roll מפעילה שכירות בעת נחיתה על נכס תפוס.',
     'rent יורד מהשוכר ומתווסף לבעלים באותה פעולה; נחיתה על נכס עצמי אינה מעבירה כסף.',
     'אם השוכר עבר Start, מוסיפים תחילה 200 ולאחר מכן מפחיתים שכירות.',
     'אירוע שכירות מתאים למבנה <renter> paid <rent> rent to <owner> for <property>.',
-    'פעולה שאינה זמינה מחזירה 409 ואינה משנה מצב.',
+    'לאחר תשלום שכירות available_actions שווה בדיוק ל-["end_turn"].',
   ],
   endpoints: [{
     method: 'POST', path: '/api/game/roll', what: 'תנועה והעברת שכירות בעת נחיתה על נכס תפוס.', status: '200 OK או 409', request: [],
@@ -862,7 +862,6 @@ Object.assign(exercises[7], {
   checks: [
     'השכירות יורדת ועולה באותו סכום אצל שני השחקנים.',
     'נחיתה על נכס עצמי אינה משנה כסף.',
-    'שחקן שפשט רגל אינו מקבל תור.',
     'last_event זהה לאיבר האחרון ב-event_log.',
   ],
 });
@@ -889,7 +888,7 @@ Object.assign(learningMetadata[6], {
 });
 Object.assign(learningMetadata[7], {
   prerequisites: ['השלמת תרגיל 7.', 'הבנת העברת כסף בין שחקנים.'],
-  concepts: ['שכירות והעברת כסף.', 'דילוג על שחקנים שפשטו רגל.'],
+  concepts: ['שכירות והעברת כסף.', 'עקביות מצב המשחק לאחר תשלום.'],
   submission: ['פלט בדיקות תרגיל 8 מתוך ה-UI.', 'רצף שמציג תשלום שכירות.'],
 });
 Object.assign(learningMetadata[8], {

@@ -23,6 +23,8 @@ def test_landing_on_another_players_property_transfers_rent(api):
             context = {"renter": renter_name, "owner": owner_name, "rent": amount, "start_bonus": start_bonus}
             expect("Deduct rent from the renter", "POST /api/game/roll", None, before_money[renter_name] + start_bonus - amount, after_money[renter_name], json_path=f"$.state.players[name={renter_name}].money", calculation_context=context)
             expect("Pay rent to the owner", "POST /api/game/roll", None, before_money[owner_name] + amount, after_money[owner_name], json_path=f"$.state.players[name={owner_name}].money", calculation_context=context)
+            expect("Allow only ending the turn after rent", "POST /api/game/roll", None, ["end_turn"], state["available_actions"], json_path="$.state.available_actions", calculation_context=context)
+            expect("Keep the latest rent event consistent", "POST /api/game/roll", None, state["event_log"][-1], state["last_event"], json_path="$.state.last_event and $.state.event_log[-1]", calculation_context=context)
             return
 
         if state["status"] == "finished":

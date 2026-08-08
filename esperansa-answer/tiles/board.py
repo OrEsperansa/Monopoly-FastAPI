@@ -10,7 +10,7 @@ def create_board() -> list[Tile]:
     """Create every tile in the 16-position game board."""
     return [
         StartTile(0, "Start"),
-        PropertyTile(1, "Jordan", price=100, rent=20),
+        PropertyTile(1, "Israel", price=100, rent=20),
         RewardTile(2, "Cultural Festival", amount=100),
         PropertyTile(3, "Cairo", price=120, rent=24),
         PenaltyTile(4, "Customs", amount=350),

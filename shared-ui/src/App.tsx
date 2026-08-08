@@ -52,7 +52,8 @@ export function App() {
     setBusy(true);
     setError(null);
     try {
-      setGame(await operation());
+      const nextState = await operation();
+      setGame(nextState.status === "not_started" ? null : nextState);
     } catch (err) {
       setError(err instanceof Error ? err.message : "הבקשה נכשלה.");
     } finally {
