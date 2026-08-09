@@ -1,6 +1,6 @@
 # Complete Docker Images
 
-This directory contains complete, uncompressed archives produced with `docker save` from the Sigit Empire `v1.1` images. Each archive includes both the `v1.1` and `latest` tags:
+This directory contains complete, uncompressed archives produced with `docker save` from the Sigit Empire `2026-08-08` images. Each archive includes both the `2026-08-08` and `latest` tags:
 
 - `monopoly-fastapi-api-latest.tar`
 - `monopoly-fastapi-ui-latest.tar`
